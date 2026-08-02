@@ -1,11 +1,10 @@
-/* Service Worker — MS360 Enfermería (app maestra) v4 */
-const CACHE = "ms360-enf-v4";
+/* Service Worker — MS360 Enfermería (app maestra) v5 */
+const CACHE = "ms360-enf-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./menu.css",
   "./menu.js",
-  "./activacion.js",
   "./manifest.json",
   "./icons/logo-canal.png",
   "./icons/logo-canal-512.png"
@@ -27,12 +26,6 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
-
-  // No interceptar Firebase / Google — deben ir siempre a la red
-  const url = e.request.url;
-  if (url.includes("firebase") || url.includes("googleapis") || url.includes("gstatic")) {
-    return;
-  }
 
   // Estrategia: red primero, caché de respaldo (offline)
   e.respondWith(

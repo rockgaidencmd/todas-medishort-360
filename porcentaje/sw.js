@@ -7,8 +7,7 @@ const ASSETS = [
   './app.js',
   './manifest.json',
   './icono-192.png',
-  './icono-512.png',
-  'https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap',
+  './icono-512.png'
 ];
 
 // Install: cache all assets

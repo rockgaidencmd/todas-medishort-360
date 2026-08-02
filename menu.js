@@ -27,10 +27,10 @@
 })();
 
 const APPS = {
-  porcentaje: { url: "/porcentaje/index.html", title: "Conversión de %", premium: false },
-  dosisflujo: { url: "/dosisflujo/index.html", title: "Dosis y Goteo",   premium: false },
-  aspa:       { url: "/aspa/index.html",       title: "Regla del Aspa",   premium: true  },
-  uci:        { url: "/uci/index.html",        title: "UCI: Balance + Antropometría", premium: true },
+  porcentaje: { url: "./porcentaje/index.html", title: "Conversión de %" },
+  dosisflujo: { url: "./dosisflujo/index.html", title: "Dosis y Goteo" },
+  aspa:       { url: "./aspa/index.html",       title: "Regla del Aspa" },
+  uci:        { url: "./uci/index.html",        title: "UCI: Balance + Antropometría" },
 };
 
 const menu        = document.getElementById("menu");
@@ -39,22 +39,9 @@ const viewerFrame = document.getElementById("viewer-frame");
 const viewerTitle = document.getElementById("viewer-title");
 const backBtn     = document.getElementById("back-btn");
 
-/* ---- ¿Premium desbloqueado? ----
-   NOTA: por ahora siempre devuelve true para poder probar la navegación.
-   Cuando integremos Google Play Billing, esta función consultará el
-   estado real de la compra. NO usar localStorage como única verdad. */
-function premiumDesbloqueado() {
-  return true; // TODO: reemplazar por verificación real de Billing
-}
-
 function abrirApp(key) {
   const app = APPS[key];
   if (!app) return;
-
-  if (app.premium && !premiumDesbloqueado()) {
-    mostrarPaywall(key);
-    return;
-  }
 
   viewerFrame.src = app.url;
   viewerTitle.textContent = app.title;
@@ -69,11 +56,6 @@ function volverAlMenu() {
   menu.style.display = "flex";
 }
 
-function mostrarPaywall(key) {
-  // Placeholder: se reemplazará por la pantalla real de compra ($2.99)
-  alert("Esta calculadora es PRO.\n\nPróximamente: desbloquear las 2 calculadoras PRO por una sola compra.");
-}
-
 /* ---- Eventos ---- */
 document.querySelectorAll(".tool").forEach(btn => {
   btn.addEventListener("click", () => abrirApp(btn.dataset.app));
@@ -86,11 +68,21 @@ window.addEventListener("popstate", () => {
   if (!viewer.hidden) volverAlMenu();
 });
 
+/* Los textos legales se abren en el mismo visor: así funcionan igual en el
+   navegador y dentro del WebView de la app (donde "_blank" no abre nada). */
+function abrirPagina(url, titulo) {
+  viewerFrame.src = url;
+  viewerTitle.textContent = titulo;
+  viewer.hidden = false;
+  menu.style.display = "none";
+  window.scrollTo(0, 0);
+}
+
 document.getElementById("open-privacy").addEventListener("click", () => {
-  window.open("privacidad/index.html", "_blank");
+  abrirPagina("./privacidad/index.html", "Política de privacidad");
 });
 document.getElementById("open-terms").addEventListener("click", () => {
-  window.open("terminos/index.html", "_blank");
+  abrirPagina("./terminos/index.html", "Términos");
 });
 document.getElementById("open-about").addEventListener("click", () => {
   alert("MS360 Enfermería\nCalculadoras clínicas de MEDISHORT360.\n\nHerramienta de apoyo educativo.");
