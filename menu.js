@@ -63,7 +63,17 @@ document.querySelectorAll(".tool").forEach(btn => {
 
 backBtn.addEventListener("click", volverAlMenu);
 
-// El botón físico "atrás" de Android vuelve al menú en vez de cerrar la app
+/* El botón físico "atrás" de Android cierra la calculadora abierta en vez de
+   salir de la app. Lo consulta MainActivity: devuelve true si hubo algo que
+   cerrar, false si ya estamos en el menú y toca salir. */
+window.MS360_volverAtras = function () {
+  if (!viewer.hidden) { volverAlMenu(); return true; }
+  const disclaimer = document.getElementById("disclaimer");
+  if (disclaimer && !disclaimer.hidden) return true; // no saltarse el aviso
+  return false;
+};
+
+// Mismo comportamiento en el navegador (PWA instalada)
 window.addEventListener("popstate", () => {
   if (!viewer.hidden) volverAlMenu();
 });

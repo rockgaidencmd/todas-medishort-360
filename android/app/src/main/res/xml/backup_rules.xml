@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  La app no guarda datos del usuario: lo único en almacenamiento local es
+  la marca de "disclaimer aceptado". No hay nada que respaldar.
+-->
+<full-backup-content>
+    <exclude domain="root" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="file" />
+</full-backup-content>

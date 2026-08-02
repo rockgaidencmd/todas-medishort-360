@@ -1,0 +1,20 @@
+# ─── Firma de release: NUNCA subir a git ───
+# Si el keystore se filtra, cualquiera puede publicar actualizaciones
+# falsas de tu app firmadas con tu identidad.
+*.jks
+*.keystore
+android/key.properties
+
+# ─── Build de Android ───
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+*.aab
+*.apk
+
+# ─── Sistema ───
+.DS_Store
+Thumbs.db

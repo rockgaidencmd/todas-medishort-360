@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mismos colores que la web (menu.css) para que el arranque no parpadee -->
+    <color name="ms360_fondo">#0A0F1D</color>
+    <color name="ms360_azul">#1976D2</color>
+</resources>
