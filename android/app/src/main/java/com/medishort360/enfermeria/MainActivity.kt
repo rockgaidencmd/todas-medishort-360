@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -52,6 +53,13 @@ class MainActivity : ComponentActivity() {
             settings.allowFileAccess = false
             settings.allowContentAccess = false
             settings.mediaPlaybackRequiresUserGesture = true
+
+            // Sin un WebChromeClient, el WebView descarta window.alert() en
+            // silencio. Las calculadoras lo usan para avisar de datos
+            // inválidos y para el "Acerca de", así que sin esto la app
+            // parecería no responder. La implementación por defecto ya
+            // muestra los diálogos nativos.
+            webChromeClient = WebChromeClient()
 
             webViewClient = object : WebViewClient() {
 

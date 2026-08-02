@@ -331,11 +331,17 @@ function compartir() {
     }).catch(err => console.log('Error al compartir:', err));
   } else {
     // Fallback: copiar al portapapeles
-    navigator.clipboard.writeText(mensaje).then(() => {
-      alert('✅ Resultados copiados al portapapeles');
-    }).catch(() => {
+    // navigator.clipboard no existe en todos los WebView; si falta o
+    // falla, se muestran los resultados para que el usuario los copie.
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(mensaje).then(() => {
+        alert('✅ Resultados copiados al portapapeles');
+      }).catch(() => {
+        alert('Resultados:\n\n' + mensaje);
+      });
+    } else {
       alert('Resultados:\n\n' + mensaje);
-    });
+    }
   }
 }
 
@@ -468,11 +474,17 @@ function compartirAntropo() {
       text: mensaje
     }).catch(err => console.log('Error al compartir:', err));
   } else {
-    navigator.clipboard.writeText(mensaje).then(() => {
-      alert('✅ Resultados copiados al portapapeles');
-    }).catch(() => {
+    // navigator.clipboard no existe en todos los WebView; si falta o
+    // falla, se muestran los resultados para que el usuario los copie.
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(mensaje).then(() => {
+        alert('✅ Resultados copiados al portapapeles');
+      }).catch(() => {
+        alert('Resultados:\n\n' + mensaje);
+      });
+    } else {
       alert('Resultados:\n\n' + mensaje);
-    });
+    }
   }
 }
 
