@@ -654,6 +654,72 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
   color: var(--ok); font-weight: 600;
 }
 
+/* ═══════════ PUERTA DE ACTIVACIÓN ═══════════ */
+.gate {
+  position: fixed; inset: 0; z-index: 9990;
+  display: flex; align-items: center; justify-content: center;
+  padding: 22px; overflow-y: auto;
+  background: radial-gradient(125% 85% at 50% -8%,
+              color-mix(in srgb, var(--bg) 78%, #ffffff) 0%, var(--bg) 58%, #04070d 100%);
+}
+.gate-card {
+  width: 100%; max-width: 390px; margin: auto; text-align: center;
+  background: var(--s1); border: 1px solid var(--line);
+  border-radius: 20px; padding: 32px 24px 26px;
+  box-shadow: 0 0 44px color-mix(in srgb, var(--acc) 14%, transparent), 0 18px 50px rgba(0,0,0,.5);
+}
+.gate-logo-wrap { position: relative; width: 92px; height: 92px; margin: 0 auto 16px; display: grid; place-items: center; }
+.gate-ring {
+  position: absolute; inset: -4px; border-radius: 50%;
+  background: conic-gradient(var(--oro), var(--rojo), #fff3cf, var(--oro));
+  animation: spin 5s linear infinite; opacity: .9;
+}
+.gate-logo {
+  width: 86px; height: 86px; border-radius: 50%; object-fit: cover;
+  position: relative; border: 3px solid var(--s1);
+}
+.gate-title { font-size: 21px; font-weight: 700; letter-spacing: .4px; margin-bottom: 4px; }
+.gate-title span { color: var(--oro); }
+.gate-sub { font-size: 12.5px; color: var(--txt-2); line-height: 1.55; margin-bottom: 24px; }
+
+.gate-label {
+  display: block; text-align: left; margin-bottom: 8px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--txt-3);
+}
+#gate-input {
+  width: 100%; box-sizing: border-box;
+  background: var(--s3); border: 1.5px solid var(--line); border-radius: 11px;
+  color: var(--acc); font-family: var(--mono);
+  font-size: 1.05rem; letter-spacing: 3px; text-align: center;
+  padding: 14px 12px; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+#gate-input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent);
+}
+#gate-input::placeholder { color: var(--txt-3); letter-spacing: 2px; font-size: .88rem; }
+#gate-input.shake {
+  animation: gateShake .4s ease;
+  border-color: var(--crit);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--crit) 16%, transparent);
+}
+@keyframes gateShake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+}
+#gate-error {
+  font-size: 12px; color: var(--crit); font-weight: 600;
+  margin: 9px 0 0; min-height: 17px; line-height: 1.4;
+  opacity: 0; transition: opacity .2s;
+}
+#gate-error.visible { opacity: 1; }
+#gate-btn { margin-top: 17px; }
+.gate-foot { margin-top: 20px; font-size: 10.5px; color: var(--txt-3); line-height: 1.65; }
+.gate-foot b { color: var(--txt-2); }
+
 /* ═══════════ OVERLAY / MODAL ═══════════ */
 .overlay {
   position: fixed; inset: 0; z-index: 9500;

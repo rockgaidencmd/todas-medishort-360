@@ -2519,9 +2519,16 @@ document.addEventListener('DOMContentLoaded', () => {
   chk.onchange = () => { btn.disabled = !chk.checked; };
   btn.onclick = () => { $('#disclaimer').hidden = true; LS.set('aviso', 1); };
 
+  // El aviso legal espera a que se haya superado la puerta de activación,
+  // para no apilar dos pantallas encima de la otra en el primer arranque
+  const mostrarAviso = () => { if (!LS.get('aviso', 0)) $('#disclaimer').hidden = false; };
+  // Si la puerta no llegó a mostrarse (ya activado, dentro de MS360, o
+  // activacion.js no cargó) el aviso sale igualmente: nunca se salta.
+  const puertaAbierta = () => { const g = $('#gate'); return !g || g.hidden; };
   setTimeout(() => {
     $('#splash').classList.add('gone');
-    if (!LS.get('aviso', 0)) $('#disclaimer').hidden = false;
+    if (window.__evita4Activado || puertaAbierta()) mostrarAviso();
+    else document.addEventListener('evita4:activado', mostrarAviso, { once: true });
   }, 1700);
 
   if ('serviceWorker' in navigator) {

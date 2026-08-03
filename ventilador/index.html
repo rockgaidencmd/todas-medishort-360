@@ -34,6 +34,45 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
+     PUERTA DE ACTIVACIÓN
+     Se pide una sola vez por dispositivo. Oculta por defecto:
+     si activacion.js no carga, la app sigue siendo usable.
+═══════════════════════════════════════════════════════════ -->
+<div id="gate" class="gate" hidden>
+  <div class="gate-card">
+    <div class="gate-logo-wrap">
+      <span class="gate-ring"></span>
+      <img src="./icons/icon-192.png" alt="MEDISHORT360" class="gate-logo" />
+    </div>
+    <h2 class="gate-title">Dräger <span>Evita 4</span></h2>
+    <p class="gate-sub">Introduce tu código de activación para desbloquear el simulador. Solo se pide una vez en este dispositivo.</p>
+
+    <label class="gate-label" for="gate-input">Código de activación</label>
+    <input
+      type="text"
+      id="gate-input"
+      maxlength="40"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      inputmode="text"
+      placeholder="XXXX-XXXX-XXXX"
+    />
+    <div id="gate-error"></div>
+
+    <button id="gate-btn" class="btn btn-primary btn-block">🔑 Activar</button>
+
+    <p class="gate-foot">
+      La activación necesita internet <b>una única vez</b>.<br />
+      Después el simulador funciona sin conexión.<br />
+      📺 MEDISHORT360 · Simulación clínica
+    </p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
      AVISO LEGAL / PRIMER ARRANQUE
 ═══════════════════════════════════════════════════════════ -->
 <div id="disclaimer" class="overlay" hidden>
@@ -497,5 +536,6 @@
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
 <script src="./app.js"></script>
+<script type="module" src="./activacion.js"></script>
 </body>
 </html>
