@@ -31,7 +31,9 @@ const APPS = {
   dosisflujo: { url: "/dosisflujo/index.html", title: "Dosis y Goteo",   premium: false },
   aspa:       { url: "/aspa/index.html",       title: "Regla del Aspa",   premium: true  },
   uci:        { url: "/uci/index.html",        title: "UCI: Balance + Antropometría", premium: true },
-  ventilador: { url: "/ventilador/index.html", title: "Simulador Dräger Evita 4", premium: true },
+  // Ruta relativa: funciona tanto en la raíz del dominio (app empaquetada)
+  // como servida en un subdirectorio de GitHub Pages.
+  ventilador: { url: "ventilador/index.html", title: "Simulador Dräger Evita 4", premium: true },
 };
 
 const menu        = document.getElementById("menu");
