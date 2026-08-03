@@ -326,7 +326,7 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
 
 .vent-head {
   display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-  padding: calc(var(--safe-t) + 8px) 10px 8px;
+  padding: calc(var(--safe-t) + 6px) 10px 6px;
   background: linear-gradient(180deg, var(--s2), var(--s1));
   border-bottom: 1px solid var(--line);
 }
@@ -344,7 +344,7 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
 /* Banner de alarma */
 .alarm-bar {
   display: flex; align-items: center; gap: 9px; flex-shrink: 0;
-  padding: 9px 13px; font-size: 12.5px; font-weight: 700;
+  padding: 7px 13px; font-size: 12px; font-weight: 700;
   background: var(--crit); color: #fff;
   animation: alarmpulse 1.1s ease-in-out infinite;
 }
@@ -361,7 +361,7 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
   border-bottom: 1px solid var(--line);
   padding: 0 0 6px;
 }
-.wave-tabs { display: flex; align-items: center; gap: 4px; padding: 6px 8px 4px; }
+.wave-tabs { display: flex; align-items: center; gap: 4px; padding: 5px 8px 3px; }
 .wtab {
   font-size: 10.5px; font-weight: 650; padding: 5px 11px; border-radius: 7px;
   color: #64788f; background: rgba(255,255,255,.04);
@@ -394,14 +394,17 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
 .vent-screen.closed .wtab[data-wave],
 .vent-screen.closed .wtab.freeze { display: none; }
 
-/* ── Secciones plegables (valores medidos) ── */
+/* ── Sección plegable: valores medidos + monitor del paciente ── */
 .fold-sec { flex-shrink: 0; }
 .fold-h {
-  width: 100%; display: flex; align-items: center; gap: 9px;
-  padding: 6px 11px; background: var(--s2);
-  border-bottom: 1px solid var(--line); color: var(--txt-3);
+  display: flex; align-items: stretch;
+  background: var(--s2); border-bottom: 1px solid var(--line);
 }
-.fold-h > span {
+.fold-tap {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px;
+  padding: 6px 4px 6px 11px; color: var(--txt-3);
+}
+.fold-tap > span {
   font-size: 9px; font-weight: 800; letter-spacing: .9px;
   text-transform: uppercase; flex-shrink: 0;
 }
@@ -411,14 +414,19 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   display: none;
 }
-.fold-ar { font-size: 11px; flex-shrink: 0; transition: transform .2s; }
+.fold-ar { font-size: 11px; flex-shrink: 0; padding: 0 7px; transition: transform .2s; }
+.fold-gaso {
+  flex-shrink: 0; width: 40px; font-size: 15px;
+  border-left: 1px solid var(--line); color: var(--acc);
+}
+.fold-gaso:active { background: var(--acc); color: #1a1206; }
 .fold-sec.closed .fold-ar { transform: rotate(180deg); }
-.fold-sec.closed .meas-strip { display: none; }
+.fold-sec.closed .fold-body { display: none; }
 .fold-sec.closed .fold-peek { display: block; }
-.fold-h:active { background: var(--s3); }
+.fold-tap:active { background: var(--s3); }
 
 .wave-wrap { display: flex; flex-direction: column; gap: 3px; padding: 0 6px; }
-.wave-cv { width: 100%; height: 66px; display: block; border-radius: 6px; background: var(--scr-bg); }
+.wave-cv { width: 100%; height: 62px; display: block; border-radius: 6px; background: var(--scr-bg); }
 .wave-cv.tall { height: 128px; }
 .wave-cv.xtall { height: 190px; }
 #wave-bucles { flex-direction: row; gap: 6px; }
@@ -474,7 +482,7 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
 }
 .ctl-tabs::-webkit-scrollbar { display: none; }
 .ctab {
-  flex: 1 0 auto; padding: 10px 12px; font-size: 12px; font-weight: 650;
+  flex: 1 0 auto; padding: 9px 12px; font-size: 12px; font-weight: 650;
   color: var(--txt-3); border-bottom: 2.5px solid transparent;
   position: relative; white-space: nowrap;
 }
@@ -487,9 +495,10 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
 }
 
 .ctl-body { flex: 1; min-height: 0; }
+.ctl-body.scroll { padding: 11px 12px calc(20px + var(--safe-b)); }
 .ctl-pane { display: none; }
 .ctl-pane.active { display: block; animation: fadein .2s ease; }
-.pane-lead { font-size: 11.5px; color: var(--txt-2); line-height: 1.55; margin-bottom: 12px; }
+.pane-lead { font-size: 11px; color: var(--txt-3); line-height: 1.45; margin-bottom: 9px; }
 .pane-lead b { color: var(--txt); }
 
 /* Modos */

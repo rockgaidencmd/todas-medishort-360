@@ -2000,27 +2000,32 @@ function pintarMedidos() {
   if (pc && $('#vent-screen')?.classList.contains('closed')) {
     pc.textContent = `Ppico ${round(m.ppico, 0)} · Pmes ${round(m.pplat, 0)} · VTe ${round(m.vtEntregado, 0)} · FR ${round(m.fTot, 0)}`;
   }
-  const pm = $('#peek-meas');
-  if (pm && $('#sec-meas')?.classList.contains('closed')) {
-    pm.textContent = `Ppico ${round(m.ppico, 0)} · Pmes ${round(m.pplat, 0)} · PEEP ${round(m.peepTot, 1)} · VTe ${round(m.vtEntregado, 0)} · VM ${round(m.vm, 1)} · I:E 1:${round(m.ie, 1)}`;
+  const pd = $('#peek-datos');
+  if (pd && $('#sec-datos')?.classList.contains('closed')) {
+    // Primero las constantes vitales, que es lo que no se puede perder de vista
+    pd.textContent = `SpO₂ ${round(f.spo2, 0)} · FC ${round(f.hr, 0)} · PAM ${round(f.map, 0)} · Pmes ${round(m.pplat, 0)} · VTe ${round(m.vtEntregado, 0)} · VM ${round(m.vm, 1)}`;
+    pd.style.color = (f.spo2 < 90 || f.map < 65 || m.pplat > 30) ? 'var(--crit)' : '';
   }
 }
 
 /* ─────────── Plegado de la pantalla para ganar espacio ─────────── */
 function plegar(cual, cerrar) {
-  const el = cual === 'curvas' ? $('#vent-screen') : $('#sec-meas');
+  const el = cual === 'curvas' ? $('#vent-screen') : $('#sec-datos');
   if (!el) return;
   const estado = (cerrar === undefined) ? !el.classList.contains('closed') : cerrar;
   el.classList.toggle('closed', estado);
-  const h = cual === 'curvas' ? $('#fold-curvas') : $('#fold-meas');
+  const h = cual === 'curvas' ? $('#fold-curvas') : $('#fold-datos');
   if (h) h.setAttribute('aria-expanded', String(!estado));
   LS.set('fold_' + cual, estado ? 1 : 0);
   if (!estado && cual === 'curvas') setTimeout(() => { redimensionarCurvas(); pintarCurvas(); }, 60);
   if (S.fis) pintarMedidos();
 }
 function restaurarPlegado() {
+  // En pantallas cortas los datos arrancan plegados: el resumen de la barra
+  // sigue mostrando lo esencial y los controles nacen con sitio de sobra
+  const porDefecto = window.innerHeight < 820 ? 1 : 0;
   plegar('curvas', !!LS.get('fold_curvas', 0));
-  plegar('meas', !!LS.get('fold_meas', 0));
+  plegar('datos', !!LS.get('fold_datos', porDefecto));
 }
 
 function revisarAlarmasEquipo() {
@@ -2429,11 +2434,12 @@ function initEventos() {
 
   // Plegar / desplegar para dejar sitio a los controles
   $('#fold-curvas').onclick = () => { plegar('curvas'); vibrar(18); };
-  $('#fold-meas').onclick = () => { plegar('meas'); vibrar(18); };
+  $('#fold-datos').onclick = () => { plegar('datos'); vibrar(18); };
+  $('#btn-gaso-mini').onclick = mostrarGaso;
   $('#btn-espacio').onclick = () => {
     const abierto = !$('#vent-screen').classList.contains('closed')
-                 || !$('#sec-meas').classList.contains('closed');
-    plegar('curvas', abierto); plegar('meas', abierto);
+                 || !$('#sec-datos').classList.contains('closed');
+    plegar('curvas', abierto); plegar('datos', abierto);
     vibrar(25);
     if (abierto) notificar({
       sev: 'info', ico: '⤢', k: 'var(--cian)', title: 'Modo controles',
@@ -2531,9 +2537,22 @@ document.addEventListener('DOMContentLoaded', () => {
     else document.addEventListener('evita4:activado', mostrarAviso, { once: true });
   }, 1700);
 
+  // Service worker: al activarse una versión nueva se recarga una sola vez,
+  // para que las actualizaciones lleguen al primer intento y no al segundo
   if ('serviceWorker' in navigator) {
+    let recargando = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (recargando) return;
+      recargando = true;
+      location.reload();
+    });
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+          reg.update();
+          setInterval(() => reg.update(), 60 * 60 * 1000);
+        })
+        .catch(() => {});
     });
   }
 });

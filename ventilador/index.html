@@ -14,7 +14,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=3" />
 </head>
 <body>
 
@@ -348,23 +348,28 @@
     </div><!-- /wave-body -->
   </div>
 
-  <!-- Valores medidos (plegables) -->
-  <div class="fold-sec" id="sec-meas">
-    <button class="fold-h" id="fold-meas" aria-expanded="true">
-      <span>Valores medidos</span>
-      <i class="fold-peek" id="peek-meas"></i>
-      <b class="fold-ar">⌃</b>
-    </button>
-    <div class="meas-strip" id="meas-strip"></div>
-  </div>
+  <!-- Valores medidos + monitor del paciente · una sola pestaña desplegable -->
+  <div class="fold-sec" id="sec-datos">
+    <div class="fold-h">
+      <button class="fold-tap" id="fold-datos" aria-expanded="true">
+        <span>Datos</span>
+        <i class="fold-peek" id="peek-datos"></i>
+        <b class="fold-ar">⌃</b>
+      </button>
+      <button class="fold-gaso" id="btn-gaso-mini" title="Tomar gasometría" aria-label="Tomar gasometría">🧪</button>
+    </div>
 
-  <!-- Monitor del paciente -->
-  <div class="pt-monitor">
-    <div class="pm-item" style="--k:var(--cian)"><span>SpO₂</span><b id="m-spo2">—</b><i>%</i></div>
-    <div class="pm-item" style="--k:var(--verde)"><span>FC</span><b id="m-hr">—</b><i>lpm</i></div>
-    <div class="pm-item" style="--k:var(--rojo)"><span>PAM</span><b id="m-map">—</b><i>mmHg</i></div>
-    <div class="pm-item" style="--k:var(--oro)"><span>EtCO₂</span><b id="m-etco2">—</b><i>mmHg</i></div>
-    <button class="pm-gaso" id="btn-gaso">🧪 Gasometría</button>
+    <div class="fold-body">
+      <div class="meas-strip" id="meas-strip"></div>
+
+      <div class="pt-monitor">
+        <div class="pm-item" style="--k:var(--cian)"><span>SpO₂</span><b id="m-spo2">—</b><i>%</i></div>
+        <div class="pm-item" style="--k:var(--verde)"><span>FC</span><b id="m-hr">—</b><i>lpm</i></div>
+        <div class="pm-item" style="--k:var(--rojo)"><span>PAM</span><b id="m-map">—</b><i>mmHg</i></div>
+        <div class="pm-item" style="--k:var(--oro)"><span>EtCO₂</span><b id="m-etco2">—</b><i>mmHg</i></div>
+        <button class="pm-gaso" id="btn-gaso">🧪 Gasometría</button>
+      </div>
+    </div>
   </div>
 
   <!-- Pestañas de control -->
@@ -535,7 +540,7 @@
 <!-- Contenedor de notificaciones educativas -->
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
-<script src="./app.js"></script>
-<script type="module" src="./activacion.js"></script>
+<script src="./app.js?v=3"></script>
+<script type="module" src="./activacion.js?v=3"></script>
 </body>
 </html>

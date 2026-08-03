@@ -6,14 +6,16 @@
    externas, por lo que el simulador es 100 % offline.
 ══════════════════════════════════════════════════════════════ */
 
-const CACHE = 'evita4-sim-v1';
+// Sube este número en cada despliegue: fuerza a descartar la caché anterior
+const VERSION = '3';
+const CACHE = 'evita4-sim-v' + VERSION;
 
 const RECURSOS = [
   './',
   './index.html',
-  './style.css',
-  './app.js',
-  './activacion.js',
+  './style.css?v=3',
+  './app.js?v=3',
+  './activacion.js?v=3',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
