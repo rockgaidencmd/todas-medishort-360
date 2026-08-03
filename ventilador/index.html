@@ -258,6 +258,7 @@
     <div class="vh-pt" id="vh-pt">—</div>
     <div class="vh-right">
       <div class="vh-clock" id="vh-clock">00:00</div>
+      <button class="icon-btn sm" id="btn-espacio" title="Ampliar la zona de controles">⤢</button>
       <button class="icon-btn sm" id="btn-mute" title="Silenciar alarmas 2 min">🔔</button>
       <button class="icon-btn sm" id="btn-ajustes2" title="Apariencia">⚙︎</button>
     </div>
@@ -271,14 +272,18 @@
   </div>
 
   <!-- Pantalla del ventilador -->
-  <div class="vent-screen">
+  <div class="vent-screen" id="vent-screen">
     <div class="wave-tabs">
+      <span class="wave-lab">Curvas</span>
       <button class="wtab active" data-wave="curvas">Curvas</button>
       <button class="wtab" data-wave="bucles">Bucles</button>
       <button class="wtab" data-wave="tendencia">Tendencias</button>
-      <span class="wave-flex"></span>
+      <span class="wave-peek" id="peek-curvas"></span>
       <button class="wtab freeze" id="btn-freeze" title="Congelar">⏸</button>
+      <button class="wtab fold" id="fold-curvas" title="Ocultar o mostrar las curvas" aria-label="Ocultar o mostrar las curvas">⌃</button>
     </div>
+
+    <div class="wave-body" id="wave-body">
 
     <div class="wave-wrap" id="wave-curvas">
       <canvas id="cv-paw" class="wave-cv"></canvas>
@@ -300,10 +305,19 @@
         <span style="--k:var(--verde)">Pplat</span>
       </div>
     </div>
+
+    </div><!-- /wave-body -->
   </div>
 
-  <!-- Valores medidos -->
-  <div class="meas-strip" id="meas-strip"></div>
+  <!-- Valores medidos (plegables) -->
+  <div class="fold-sec" id="sec-meas">
+    <button class="fold-h" id="fold-meas" aria-expanded="true">
+      <span>Valores medidos</span>
+      <i class="fold-peek" id="peek-meas"></i>
+      <b class="fold-ar">⌃</b>
+    </button>
+    <div class="meas-strip" id="meas-strip"></div>
+  </div>
 
   <!-- Monitor del paciente -->
   <div class="pt-monitor">

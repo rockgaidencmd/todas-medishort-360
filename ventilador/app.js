@@ -1423,6 +1423,9 @@ function dibujarTendencia() {
 }
 
 function pintarCurvas() {
+  // Con la pantalla plegada no hay nada que dibujar: ahorra batería
+  const scr = document.getElementById('vent-screen');
+  if (scr && scr.classList.contains('closed')) return;
   const vis = id => { const e = document.getElementById(id); return e && !e.hasAttribute('hidden'); };
   if (vis('wave-curvas')) {
     const pmax = Math.max(35, Math.ceil((S.med.ppico + 8) / 10) * 10);
@@ -1649,7 +1652,7 @@ function iniciarSimulacion(preset) {
   $('#vh-pt').textContent = `${pt.nombre} · ${pt.edad} a · ${pt.sexo === 'F' ? 'F' : 'M'} · PBW ${round(pt.pbw, 0)} kg · ${DX[dx].ico} ${DX[dx].n.split('(')[0].trim()}`;
   $('#badge-log').hidden = true;
   renderModos(); renderParams(); renderAlarmas(); renderManiobras(); pintarLog();
-  actualizarMedidos(); initCurvas();
+  actualizarMedidos(); initCurvas(); restaurarPlegado();
   ir('vent');
   setTimeout(() => {
     notificar({
@@ -1991,6 +1994,33 @@ function pintarMedidos() {
   set('m-hr', round(f.hr, 0), f.hr > 140 || f.hr < 45);
   set('m-map', round(f.map, 0), f.map < 60);
   set('m-etco2', round(m.etco2, 0), false);
+
+  // Resúmenes que se "asoman" cuando las secciones están plegadas
+  const pc = $('#peek-curvas');
+  if (pc && $('#vent-screen')?.classList.contains('closed')) {
+    pc.textContent = `Ppico ${round(m.ppico, 0)} · Pmes ${round(m.pplat, 0)} · VTe ${round(m.vtEntregado, 0)} · FR ${round(m.fTot, 0)}`;
+  }
+  const pm = $('#peek-meas');
+  if (pm && $('#sec-meas')?.classList.contains('closed')) {
+    pm.textContent = `Ppico ${round(m.ppico, 0)} · Pmes ${round(m.pplat, 0)} · PEEP ${round(m.peepTot, 1)} · VTe ${round(m.vtEntregado, 0)} · VM ${round(m.vm, 1)} · I:E 1:${round(m.ie, 1)}`;
+  }
+}
+
+/* ─────────── Plegado de la pantalla para ganar espacio ─────────── */
+function plegar(cual, cerrar) {
+  const el = cual === 'curvas' ? $('#vent-screen') : $('#sec-meas');
+  if (!el) return;
+  const estado = (cerrar === undefined) ? !el.classList.contains('closed') : cerrar;
+  el.classList.toggle('closed', estado);
+  const h = cual === 'curvas' ? $('#fold-curvas') : $('#fold-meas');
+  if (h) h.setAttribute('aria-expanded', String(!estado));
+  LS.set('fold_' + cual, estado ? 1 : 0);
+  if (!estado && cual === 'curvas') setTimeout(() => { redimensionarCurvas(); pintarCurvas(); }, 60);
+  if (S.fis) pintarMedidos();
+}
+function restaurarPlegado() {
+  plegar('curvas', !!LS.get('fold_curvas', 0));
+  plegar('meas', !!LS.get('fold_meas', 0));
 }
 
 function revisarAlarmasEquipo() {
@@ -2395,6 +2425,21 @@ function initEventos() {
   $('#btn-freeze').onclick = e => {
     S.congelado = !S.congelado;
     e.currentTarget.classList.toggle('on', S.congelado);
+  };
+
+  // Plegar / desplegar para dejar sitio a los controles
+  $('#fold-curvas').onclick = () => { plegar('curvas'); vibrar(18); };
+  $('#fold-meas').onclick = () => { plegar('meas'); vibrar(18); };
+  $('#btn-espacio').onclick = () => {
+    const abierto = !$('#vent-screen').classList.contains('closed')
+                 || !$('#sec-meas').classList.contains('closed');
+    plegar('curvas', abierto); plegar('meas', abierto);
+    vibrar(25);
+    if (abierto) notificar({
+      sev: 'info', ico: '⤢', k: 'var(--cian)', title: 'Modo controles',
+      msg: 'Curvas y valores medidos plegados: ahora tienes toda la pantalla para los modos y los parámetros. Los datos clave siguen asomándose en las barras.',
+      why: '', fix: 'Vuelve a pulsar ⤢ para desplegarlo todo, o toca cada barra por separado.'
+    }, 'modo_controles');
   };
   $('#btn-mute').onclick = e => {
     S.mute = S.mute > S.t ? 0 : S.t + 120;
