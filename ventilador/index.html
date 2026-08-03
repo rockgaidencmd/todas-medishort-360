@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f1a" id="meta-theme" />
+  <meta name="description" content="Simulador educativo del ventilador mecánico Dräger Evita 4. Entorno seguro para que estudiantes practiquen ventilación mecánica con respuesta fisiológica realista y retroalimentación de errores." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Evita 4 Sim" />
+  <title>Simulador Dräger Evita 4 · MEDISHORT360</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SPLASH
+═══════════════════════════════════════════════════════════ -->
+<div id="splash" class="splash">
+  <div class="splash-logo-wrap">
+    <span class="splash-ring"></span>
+    <img src="./icons/icon-192.png" alt="MEDISHORT360" class="splash-logo" />
+  </div>
+  <h1 class="splash-title">Dräger <span>Evita 4</span></h1>
+  <p class="splash-sub">Simulador de ventilación mecánica</p>
+  <div class="splash-bar"><i></i></div>
+  <p class="splash-brand">MEDISHORT360 · Entorno educativo seguro</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     AVISO LEGAL / PRIMER ARRANQUE
+═══════════════════════════════════════════════════════════ -->
+<div id="disclaimer" class="overlay" hidden>
+  <div class="ov-card">
+    <img src="./icons/icon-192.png" alt="" class="ov-logo" />
+    <h2 class="ov-title">Antes de comenzar</h2>
+    <div class="ov-body">
+      <p><strong>Este es un simulador educativo.</strong> Reproduce de forma aproximada el comportamiento de un ventilador Dräger Evita 4 y la respuesta fisiológica de un paciente virtual.</p>
+      <p><strong>No es un dispositivo médico</strong>, no sustituye el manual del fabricante, ni el criterio clínico, ni el entrenamiento supervisado. Los valores mostrados son simulados y no deben usarse para tratar pacientes reales.</p>
+      <p>Su única finalidad es que estudiantes practiquen en un <strong>entorno seguro</strong>, donde equivocarse enseña en lugar de dañar.</p>
+    </div>
+    <label class="ov-check">
+      <input type="checkbox" id="chk-disclaimer" />
+      <span>Entiendo que es una herramienta educativa simulada y no sustituye la formación clínica supervisada.</span>
+    </label>
+    <button class="btn btn-primary btn-block" id="btn-disclaimer" disabled>Aceptar y continuar</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA 1 · INICIO
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-inicio" class="screen active">
+  <header class="hero">
+    <button class="icon-btn hero-cfg" id="btn-ajustes" aria-label="Ajustes de apariencia">⚙︎</button>
+    <div class="hero-mark">
+      <span class="hero-ring"></span>
+      <img src="./icons/icon-192.png" alt="MEDISHORT360" class="hero-logo" />
+    </div>
+    <h1 class="hero-title">Dräger <span>Evita 4</span></h1>
+    <p class="hero-sub">Simulador de ventilación mecánica · MEDISHORT360</p>
+    <div class="hero-tags">
+      <span class="tag">Fisiología en tiempo real</span>
+      <span class="tag">Gasometría</span>
+      <span class="tag">Retroalimentación de errores</span>
+    </div>
+  </header>
+
+  <div class="menu-list">
+    <button class="mcard" data-go="nuevo" style="--c:var(--rojo)">
+      <span class="mcard-ico">🫁</span>
+      <span class="mcard-txt">
+        <b>Nuevo paciente</b>
+        <i>Ingresa datos, diagnóstico y laboratorios</i>
+      </span><span class="mcard-go">›</span>
+    </button>
+
+    <button class="mcard" data-go="casos" style="--c:var(--oro)">
+      <span class="mcard-ico">📋</span>
+      <span class="mcard-txt">
+        <b>Casos clínicos</b>
+        <i>Escenarios listos: SDRA, EPOC, asma, TCE…</i>
+      </span><span class="mcard-go">›</span>
+    </button>
+
+    <button class="mcard" data-go="guia" style="--c:var(--cian)">
+      <span class="mcard-ico">📖</span>
+      <span class="mcard-txt">
+        <b>Guía rápida Evita 4</b>
+        <i>Modos, parámetros y alarmas explicados</i>
+      </span><span class="mcard-go">›</span>
+    </button>
+
+    <button class="mcard" data-go="progreso" style="--c:var(--verde)">
+      <span class="mcard-ico">🏅</span>
+      <span class="mcard-txt">
+        <b>Mi progreso</b>
+        <i>Sesiones, aciertos y errores frecuentes</i>
+      </span><span class="mcard-go">›</span>
+    </button>
+  </div>
+
+  <footer class="hero-foot">
+    <button class="btn btn-ghost btn-block" id="btn-instalar" hidden>⬇︎ Instalar aplicación</button>
+    <p class="fineprint">Simulación educativa. No es un dispositivo médico ni sustituye el criterio clínico profesional.</p>
+  </footer>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA 2 · DATOS DEL PACIENTE
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-paciente" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" data-back="inicio" aria-label="Volver">‹</button>
+    <h2 class="topbar-title">Datos del paciente</h2>
+    <button class="icon-btn" id="btn-autollenar" title="Rellenar con un ejemplo">✨</button>
+  </header>
+
+  <div class="scroll">
+
+    <div class="stepper">
+      <span class="step on">1 · Paciente</span>
+      <span class="step" id="step2">2 · Diagnóstico</span>
+      <span class="step" id="step3">3 · Laboratorio</span>
+    </div>
+
+    <!-- ── Datos demográficos ── -->
+    <div class="panel">
+      <h3 class="panel-h">👤 Identificación</h3>
+      <div class="grid2">
+        <label class="field"><span>Nombre / código</span>
+          <input type="text" id="p-nombre" placeholder="Paciente A" autocomplete="off" />
+        </label>
+        <label class="field"><span>Edad (años)</span>
+          <input type="number" id="p-edad" min="1" max="110" value="55" inputmode="numeric" />
+        </label>
+        <label class="field"><span>Sexo</span>
+          <select id="p-sexo">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </label>
+        <label class="field"><span>Talla (cm)</span>
+          <input type="number" id="p-talla" min="120" max="215" value="170" inputmode="numeric" />
+        </label>
+        <label class="field"><span>Peso real (kg)</span>
+          <input type="number" id="p-peso" min="25" max="250" value="75" inputmode="decimal" />
+        </label>
+        <label class="field"><span>Temperatura (°C)</span>
+          <input type="number" id="p-temp" min="32" max="43" step="0.1" value="37.0" inputmode="decimal" />
+        </label>
+      </div>
+
+      <div class="pbw-box">
+        <div><span>Peso predicho (PBW)</span><b id="out-pbw">—</b></div>
+        <div><span>Vt protector 6 mL/kg</span><b id="out-vt6">—</b></div>
+        <div><span>Rango 4–8 mL/kg</span><b id="out-vtrange">—</b></div>
+      </div>
+      <p class="hint">💡 El volumen corriente <b>siempre</b> se calcula con el peso predicho por talla y sexo, nunca con el peso real. Usar el peso real es uno de los errores más frecuentes y más lesivos.</p>
+    </div>
+
+    <!-- ── Diagnóstico ── -->
+    <div class="panel">
+      <h3 class="panel-h">🩺 Diagnóstico / patología</h3>
+      <label class="field"><span>Motivo de ventilación mecánica</span>
+        <select id="p-dx"></select>
+      </label>
+      <div id="dx-info" class="dx-info"></div>
+
+      <div class="grid2">
+        <label class="field"><span>Gravedad</span>
+          <select id="p-gravedad">
+            <option value="leve">Leve</option>
+            <option value="moderado" selected>Moderada</option>
+            <option value="severo">Severa</option>
+          </select>
+        </label>
+        <label class="field"><span>Estado hemodinámico</span>
+          <select id="p-hemo">
+            <option value="normal" selected>Estable / normovolémico</option>
+            <option value="hipovolemico">Hipovolémico</option>
+            <option value="shock">Shock / vasopresores</option>
+          </select>
+        </label>
+        <label class="field"><span>Sedación</span>
+          <select id="p-sedacion">
+            <option value="profunda">Profunda (sin esfuerzo)</option>
+            <option value="moderada" selected>Moderada (con esfuerzo)</option>
+            <option value="ligera">Ligera / despierto</option>
+          </select>
+        </label>
+        <label class="field"><span>Relajante muscular</span>
+          <select id="p-bnm">
+            <option value="no" selected>No</option>
+            <option value="si">Sí (apnéico)</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- ── Laboratorio ── -->
+    <div class="panel">
+      <h3 class="panel-h">🧪 Gasometría arterial basal
+        <button class="mini-btn" id="btn-gaso-auto">Generar según patología</button>
+      </h3>
+      <div class="grid3">
+        <label class="field sm"><span>pH</span><input type="number" id="g-ph" step="0.01" value="7.35" inputmode="decimal" /></label>
+        <label class="field sm"><span>PaCO₂ (mmHg)</span><input type="number" id="g-paco2" step="1" value="40" inputmode="decimal" /></label>
+        <label class="field sm"><span>PaO₂ (mmHg)</span><input type="number" id="g-pao2" step="1" value="80" inputmode="decimal" /></label>
+        <label class="field sm"><span>HCO₃⁻ (mEq/L)</span><input type="number" id="g-hco3" step="0.1" value="24" inputmode="decimal" /></label>
+        <label class="field sm"><span>EB (mEq/L)</span><input type="number" id="g-be" step="0.1" value="0" inputmode="decimal" /></label>
+        <label class="field sm"><span>SaO₂ (%)</span><input type="number" id="g-sao2" step="1" value="95" inputmode="decimal" /></label>
+        <label class="field sm"><span>FiO₂ basal</span><input type="number" id="g-fio2" step="1" min="21" max="100" value="21" inputmode="decimal" /></label>
+        <label class="field sm"><span>Lactato (mmol/L)</span><input type="number" id="g-lac" step="0.1" value="1.2" inputmode="decimal" /></label>
+        <label class="field sm"><span>Hb (g/dL)</span><input type="number" id="g-hb" step="0.1" value="13.5" inputmode="decimal" /></label>
+      </div>
+
+      <h3 class="panel-h" style="margin-top:14px">⚗️ Electrolitos y función renal</h3>
+      <div class="grid3">
+        <label class="field sm"><span>Na⁺ (mEq/L)</span><input type="number" id="g-na" step="1" value="140" inputmode="decimal" /></label>
+        <label class="field sm"><span>K⁺ (mEq/L)</span><input type="number" id="g-k" step="0.1" value="4.0" inputmode="decimal" /></label>
+        <label class="field sm"><span>Cl⁻ (mEq/L)</span><input type="number" id="g-cl" step="1" value="103" inputmode="decimal" /></label>
+        <label class="field sm"><span>Albúmina (g/dL)</span><input type="number" id="g-alb" step="0.1" value="4.0" inputmode="decimal" /></label>
+        <label class="field sm"><span>Creatinina (mg/dL)</span><input type="number" id="g-cr" step="0.01" value="0.9" inputmode="decimal" /></label>
+        <label class="field sm"><span>Glucosa (mg/dL)</span><input type="number" id="g-glu" step="1" value="100" inputmode="decimal" /></label>
+      </div>
+
+      <div id="acidbase-box" class="ab-box"></div>
+    </div>
+
+    <button class="btn btn-primary btn-block big" id="btn-iniciar">▶ Conectar al ventilador</button>
+    <div class="spacer"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA 3 · VENTILADOR
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-vent" class="screen vent">
+
+  <!-- Barra superior del equipo -->
+  <header class="vent-head">
+    <div class="vh-left">
+      <button class="icon-btn sm" data-back="inicio" aria-label="Salir">‹</button>
+      <div class="vh-brand">
+        <b>Dräger</b><i>Evita 4</i>
+      </div>
+    </div>
+    <div class="vh-pt" id="vh-pt">—</div>
+    <div class="vh-right">
+      <div class="vh-clock" id="vh-clock">00:00</div>
+      <button class="icon-btn sm" id="btn-mute" title="Silenciar alarmas 2 min">🔔</button>
+      <button class="icon-btn sm" id="btn-ajustes2" title="Apariencia">⚙︎</button>
+    </div>
+  </header>
+
+  <!-- Banner de alarma -->
+  <div class="alarm-bar" id="alarm-bar" hidden>
+    <span class="ab-ico">⚠</span>
+    <span class="ab-txt" id="alarm-text">—</span>
+    <span class="ab-count" id="alarm-count"></span>
+  </div>
+
+  <!-- Pantalla del ventilador -->
+  <div class="vent-screen">
+    <div class="wave-tabs">
+      <button class="wtab active" data-wave="curvas">Curvas</button>
+      <button class="wtab" data-wave="bucles">Bucles</button>
+      <button class="wtab" data-wave="tendencia">Tendencias</button>
+      <span class="wave-flex"></span>
+      <button class="wtab freeze" id="btn-freeze" title="Congelar">⏸</button>
+    </div>
+
+    <div class="wave-wrap" id="wave-curvas">
+      <canvas id="cv-paw" class="wave-cv"></canvas>
+      <canvas id="cv-flow" class="wave-cv"></canvas>
+      <canvas id="cv-vol" class="wave-cv"></canvas>
+    </div>
+
+    <div class="wave-wrap" id="wave-bucles" hidden>
+      <canvas id="cv-pv" class="wave-cv tall"></canvas>
+      <canvas id="cv-fv" class="wave-cv tall"></canvas>
+    </div>
+
+    <div class="wave-wrap" id="wave-tendencia" hidden>
+      <canvas id="cv-trend" class="wave-cv xtall"></canvas>
+      <div class="trend-leg">
+        <span style="--k:var(--cian)">SpO₂</span>
+        <span style="--k:var(--oro)">PaCO₂</span>
+        <span style="--k:var(--rojo)">pH×10</span>
+        <span style="--k:var(--verde)">Pplat</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Valores medidos -->
+  <div class="meas-strip" id="meas-strip"></div>
+
+  <!-- Monitor del paciente -->
+  <div class="pt-monitor">
+    <div class="pm-item" style="--k:var(--cian)"><span>SpO₂</span><b id="m-spo2">—</b><i>%</i></div>
+    <div class="pm-item" style="--k:var(--verde)"><span>FC</span><b id="m-hr">—</b><i>lpm</i></div>
+    <div class="pm-item" style="--k:var(--rojo)"><span>PAM</span><b id="m-map">—</b><i>mmHg</i></div>
+    <div class="pm-item" style="--k:var(--oro)"><span>EtCO₂</span><b id="m-etco2">—</b><i>mmHg</i></div>
+    <button class="pm-gaso" id="btn-gaso">🧪 Gasometría</button>
+  </div>
+
+  <!-- Pestañas de control -->
+  <nav class="ctl-tabs">
+    <button class="ctab active" data-tab="modo">Modo</button>
+    <button class="ctab" data-tab="ajustes">Parámetros</button>
+    <button class="ctab" data-tab="alarmas">Alarmas</button>
+    <button class="ctab" data-tab="maniobras">Maniobras</button>
+    <button class="ctab" data-tab="registro">Registro <span class="badge-n" id="badge-log" hidden>0</span></button>
+  </nav>
+
+  <div class="ctl-body scroll">
+    <div class="ctl-pane active" id="pane-modo">
+      <p class="pane-lead">Selecciona el modo ventilatorio. Se muestran solo los parámetros propios de cada modo, igual que en el equipo real.</p>
+      <div class="mode-grid" id="mode-grid"></div>
+      <div class="opt-row">
+        <label class="switch"><input type="checkbox" id="opt-autoflow" /><span>AutoFlow®</span></label>
+        <label class="switch"><input type="checkbox" id="opt-asb" /><span>ASB (presión de soporte)</span></label>
+      </div>
+      <div id="mode-info" class="dx-info"></div>
+    </div>
+
+    <div class="ctl-pane" id="pane-ajustes">
+      <p class="pane-lead">Toca <b>–</b> / <b>+</b> o arrastra el deslizador. El paciente virtual responde de forma progresiva, como en la realidad.</p>
+      <div id="param-list"></div>
+    </div>
+
+    <div class="ctl-pane" id="pane-alarmas">
+      <p class="pane-lead">Los límites de alarma protegen al paciente. Apagarlos o abrirlos de más es un error de seguridad grave.</p>
+      <div id="alarm-list"></div>
+    </div>
+
+    <div class="ctl-pane" id="pane-maniobras">
+      <p class="pane-lead">Maniobras y eventos clínicos disponibles durante la simulación.</p>
+      <div class="maniobras" id="maniobras"></div>
+    </div>
+
+    <div class="ctl-pane" id="pane-registro">
+      <div class="log-head">
+        <p class="pane-lead">Bitácora de la sesión: cada cambio y cada consecuencia.</p>
+        <button class="mini-btn" id="btn-finalizar">Finalizar y evaluar</button>
+      </div>
+      <div id="log-list" class="log-list"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA 4 · REPORTE / DEBRIEFING
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-reporte" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" data-back="vent" aria-label="Volver">‹</button>
+    <h2 class="topbar-title">Evaluación de la sesión</h2>
+    <button class="icon-btn" id="btn-compartir" title="Compartir">⇪</button>
+  </header>
+  <div class="scroll" id="reporte-body"></div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA · CASOS CLÍNICOS
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-casos" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" data-back="inicio" aria-label="Volver">‹</button>
+    <h2 class="topbar-title">Casos clínicos</h2>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="scroll" id="casos-body"></div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA · GUÍA
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-guia" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" data-back="inicio" aria-label="Volver">‹</button>
+    <h2 class="topbar-title">Guía rápida Evita 4</h2>
+    <span class="icon-btn ghost"></span>
+  </header>
+  <div class="scroll" id="guia-body"></div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA · PROGRESO
+═══════════════════════════════════════════════════════════ -->
+<section id="scr-progreso" class="screen">
+  <header class="topbar">
+    <button class="icon-btn" data-back="inicio" aria-label="Volver">‹</button>
+    <h2 class="topbar-title">Mi progreso</h2>
+    <button class="icon-btn" id="btn-borrar-prog" title="Borrar historial">🗑</button>
+  </header>
+  <div class="scroll" id="progreso-body"></div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANEL DE APARIENCIA
+═══════════════════════════════════════════════════════════ -->
+<div id="ajustes" class="sheet" hidden>
+  <div class="sheet-card">
+    <div class="sheet-grab"></div>
+    <h3 class="sheet-title">Apariencia</h3>
+
+    <div class="cfg-row">
+      <span class="cfg-lab">Tema</span>
+      <div class="seg" id="seg-tema">
+        <button data-tema="dark" class="on">🌙 Oscuro</button>
+        <button data-tema="light">☀️ Diurno</button>
+        <button data-tema="auto">◐ Auto</button>
+      </div>
+    </div>
+
+    <div class="cfg-row col">
+      <span class="cfg-lab">Color de fondo</span>
+      <div class="swatches" id="swatches"></div>
+      <label class="custom-color">
+        <span>Color personalizado</span>
+        <input type="color" id="color-custom" value="#0b0f1a" />
+      </label>
+    </div>
+
+    <div class="cfg-row col">
+      <span class="cfg-lab">Color de acento</span>
+      <div class="swatches" id="acentos"></div>
+    </div>
+
+    <div class="cfg-row">
+      <span class="cfg-lab">Sonido de alarmas</span>
+      <label class="switch"><input type="checkbox" id="cfg-sonido" checked /><span></span></label>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-lab">Vibración</span>
+      <label class="switch"><input type="checkbox" id="cfg-vibrar" checked /><span></span></label>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-lab">Velocidad de simulación</span>
+      <div class="seg" id="seg-velocidad">
+        <button data-vel="1">×1</button>
+        <button data-vel="5" class="on">×5</button>
+        <button data-vel="15">×15</button>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost btn-block" id="btn-reset-tema">Restablecer apariencia</button>
+    <button class="btn btn-primary btn-block" id="btn-cerrar-ajustes">Listo</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL GENÉRICO (gasometría, ayuda de parámetros, etc.)
+═══════════════════════════════════════════════════════════ -->
+<div id="modal" class="overlay" hidden>
+  <div class="ov-card">
+    <button class="modal-x" id="modal-x" aria-label="Cerrar">✕</button>
+    <h2 class="ov-title" id="modal-title">—</h2>
+    <div class="ov-body" id="modal-body"></div>
+    <button class="btn btn-primary btn-block" id="modal-ok">Entendido</button>
+  </div>
+</div>
+
+
+<!-- Contenedor de notificaciones educativas -->
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="./app.js"></script>
+</body>
+</html>

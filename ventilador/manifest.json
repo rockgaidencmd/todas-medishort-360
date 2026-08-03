@@ -1,0 +1,37 @@
+{
+  "name": "Simulador Dräger Evita 4 — MEDISHORT360",
+  "short_name": "Evita 4 Sim",
+  "description": "Simulador educativo de ventilación mecánica basado en el Dräger Evita 4. Entorno seguro donde los estudiantes programan el ventilador, ven la respuesta fisiológica real del paciente y reciben retroalimentación de sus errores.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "medishort360-evita4-sim",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "theme_color": "#0b0f1a",
+  "background_color": "#0b0f1a",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["medical", "education"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Casos clínicos",
+      "short_name": "Casos",
+      "description": "Escenarios listos: SDRA, EPOC, asma, cetoacidosis…",
+      "url": "./index.html#casos",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Guía rápida Evita 4",
+      "short_name": "Guía",
+      "description": "Modos, parámetros y alarmas explicados",
+      "url": "./index.html#guia",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
