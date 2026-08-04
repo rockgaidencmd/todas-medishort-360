@@ -1,19 +1,20 @@
 // ═══════════════════════════════════════════════════════════════
 //  REGLAS DE SEGURIDAD DE FIRESTORE · MEDISHORT360
 //
-//  Cópialas en:  console.firebase.google.com
-//                → proyecto medishort360-f6f20
-//                → Firestore Database → pestaña "Reglas" → Publicar
+//  Publicar en: console.firebase.google.com → medishort360-f6f20
+//               → Firestore Database → pestaña "Reglas" → Publicar
 //
-//  POR QUÉ IMPORTAN
-//  La apiKey de Firebase que aparece en activacion.js es PÚBLICA por
-//  diseño: viaja en el navegador de cada usuario y no se puede ocultar.
-//  No es una contraseña, es un identificador de proyecto. Lo que de
-//  verdad decide quién puede leer y escribir son ESTAS reglas.
+//  El proyecto tiene varias colecciones de códigos, una por app
+//  (codigos_maestra, codigos_aspa, codigos_uci, codigos_x3…), así que
+//  la regla se aplica a todas por igual y no hace falta tocarla al
+//  añadir una app nueva.
 //
-//  Sin ellas (o con "allow read, write: if true") cualquiera podría
-//  descargar la lista completa de códigos de activación o liberar
-//  códigos ya usados.
+//  QUÉ ARREGLA
+//  La regla anterior era "allow read: if true", que permite leer una
+//  colección ENTERA. Con la apiKey de las apps (pública por diseño,
+//  visible en el código de cualquier web) cualquiera podía descargar
+//  la lista completa de códigos con su estado. Ahora se puede
+//  consultar un código concreto —hay que saberlo— pero no listarlos.
 // ═══════════════════════════════════════════════════════════════
 
 rules_version = '2';
@@ -21,20 +22,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Códigos de activación ──────────────────────────────────
-    // Los usan la app maestra MS360 y el simulador Dräger Evita 4.
-    match /codigos_maestra/{codigo} {
+    match /{coleccion}/{codigoId} {
 
-      // Consultar UN código concreto: permitido, pero hay que saberlo.
+      // Consultar UN código concreto: sí. Listar la colección: NO.
+      // Esta es la línea que cierra el agujero.
       allow get: if true;
-
-      // Listar la colección entera: PROHIBIDO.
-      // Esto es lo que impide que alguien se descargue todos los códigos.
       allow list: if false;
 
-      // Estrenar un código libre: permitido una sola vez.
-      // Solo puede pasar de disponible a USADO, solo puede tocar esos
-      // tres campos, y nunca puede reasignar un código ya entregado.
+      // Estrenar un código libre: una sola vez, y solo puede tocar
+      // esos tres campos. Un código ya entregado no se puede reasignar.
       allow update: if
            resource.data.get('estado', 'DISPONIBLE') == 'DISPONIBLE'
         && resource.data.get('dispositivo_id', '') == ''
@@ -45,13 +41,8 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['estado', 'dispositivo_id', 'fecha_activacion']);
 
-      // Crear o borrar códigos: solo tú, desde la consola de Firebase.
+      // Crear y borrar códigos: solo desde la consola de Firebase.
       allow create, delete: if false;
-    }
-
-    // ── Todo lo demás: cerrado ─────────────────────────────────
-    match /{document=**} {
-      allow read, write: if false;
     }
   }
 }
