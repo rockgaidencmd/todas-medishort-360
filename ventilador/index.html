@@ -14,7 +14,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=6" />
+  <link rel="stylesheet" href="./style.css?v=7" />
 </head>
 <body>
 
@@ -137,6 +137,14 @@
       </span><span class="mcard-go">›</span>
     </button>
 
+    <button class="mcard" id="mcard-docente" style="--c:var(--violeta)">
+      <span class="mcard-ico">🎓</span>
+      <span class="mcard-txt">
+        <b>Modo docente</b>
+        <i>Controla al paciente, evalúa y reparte casos</i>
+      </span><span class="mcard-go">›</span>
+    </button>
+
     <button class="mcard" data-go="progreso" style="--c:var(--verde)">
       <span class="mcard-ico">🏅</span>
       <span class="mcard-txt">
@@ -148,7 +156,7 @@
 
   <footer class="hero-foot">
     <button class="btn btn-ghost btn-block" id="btn-instalar" hidden>⬇︎ Instalar aplicación</button>
-    <p class="fineprint">Simulación educativa. No es un dispositivo médico ni sustituye el criterio clínico profesional.<br><span id="version-app">v6</span></p>
+    <p class="fineprint">Simulación educativa. No es un dispositivo médico ni sustituye el criterio clínico profesional.<br><span id="version-app">v7</span></p>
   </footer>
 </section>
 
@@ -298,6 +306,7 @@
     <div class="vh-right">
       <div class="vh-clock" id="vh-clock">00:00</div>
       <button class="icon-btn sm" id="btn-espacio" title="Ampliar la zona de controles">⤢</button>
+      <button class="icon-btn sm" id="btn-docente" title="Modo docente">🎓</button>
       <button class="icon-btn sm" id="btn-mute" title="Silenciar alarmas 2 min">🔔</button>
       <button class="icon-btn sm" id="btn-ajustes2" title="Apariencia">⚙︎</button>
     </div>
@@ -531,11 +540,11 @@
   <div class="ov-card">
     <button class="modal-x" id="pin-x" aria-label="Cerrar">✕</button>
     <h2 class="ov-title">🎓 Acceso docente</h2>
-    <p class="ov-body" style="text-align:center;margin-bottom:16px">Introduce tu PIN para abrir el panel del instructor.</p>
-    <input type="password" id="pin-input" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" />
+    <p class="ov-body" style="text-align:center;margin-bottom:16px">Introduce tu código de docente para abrir el panel del instructor.</p>
+    <input type="password" id="pin-input" maxlength="16" placeholder="••••" autocomplete="off" autocapitalize="off" spellcheck="false" />
     <div id="pin-error"></div>
     <button class="btn btn-primary btn-block" id="pin-ok">Entrar</button>
-    <p class="gate-foot">El alumno no ve este panel. Si es la primera vez, el PIN es <b>2468</b> y puedes cambiarlo dentro.</p>
+    <p class="gate-foot">Sin el código no se entra. La primera vez es <b>2468</b>:<br>cámbialo dentro, en la pestaña <b>Examen</b>.</p>
   </div>
 </div>
 
@@ -589,10 +598,11 @@
       <div class="dinfo">💡 El alumno ve un distintivo <b>EXAMEN</b> en la barra superior. Es intencionado: debe saber que se le está evaluando.</div>
 
       <div class="dgroup-h">Seguridad</div>
-      <label class="field"><span>Cambiar PIN del panel</span>
-        <input type="text" id="doc-pin-nuevo" inputmode="numeric" maxlength="8" placeholder="Nuevo PIN (4–8 dígitos)" autocomplete="off" />
+      <label class="field"><span>Cambiar el código de docente</span>
+        <input type="text" id="doc-pin-nuevo" maxlength="16" placeholder="Nuevo código (4–16 caracteres)" autocomplete="off" autocapitalize="off" spellcheck="false" />
       </label>
-      <button class="btn btn-ghost btn-block" id="doc-pin-guardar" style="margin-top:10px">Guardar PIN</button>
+      <button class="btn btn-ghost btn-block" id="doc-pin-guardar" style="margin-top:10px">Guardar código</button>
+      <div class="dinfo">Si se te filtra, cámbialo aquí y los alumnos que lo conozcan dejarán de poder entrar. Se guarda solo en este dispositivo, así que cada docente tiene el suyo.</div>
     </div>
 
     <!-- Escenario compartible -->
@@ -627,7 +637,7 @@
 <!-- Contenedor de notificaciones educativas -->
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
-<script src="./app.js?v=6"></script>
-<script type="module" src="./activacion.js?v=6"></script>
+<script src="./app.js?v=7"></script>
+<script type="module" src="./activacion.js?v=7"></script>
 </body>
 </html>

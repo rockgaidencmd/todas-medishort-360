@@ -2657,11 +2657,17 @@ function pinGuardado() { return LS.get('pin_docente', PIN_DEF); }
 
 function pulsacionLarga(el, ms, cb) {
   if (!el) return;
-  let t = null;
-  const iniciar = () => { t = setTimeout(() => { t = null; cb(); }, ms); };
+  let t = null, x0 = 0, y0 = 0;
   const cancelar = () => { if (t) { clearTimeout(t); t = null; } };
-  el.addEventListener('pointerdown', iniciar);
-  ['pointerup', 'pointerleave', 'pointercancel', 'pointermove'].forEach(e => el.addEventListener(e, cancelar));
+  el.addEventListener('pointerdown', e => {
+    x0 = e.clientX; y0 = e.clientY;
+    t = setTimeout(() => { t = null; cb(); }, ms);
+  });
+  // Se tolera el temblor normal del dedo: solo se cancela si de verdad arrastra
+  el.addEventListener('pointermove', e => {
+    if (t && Math.hypot(e.clientX - x0, e.clientY - y0) > 14) cancelar();
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(e => el.addEventListener(e, cancelar));
 }
 
 function pedirPin() {
@@ -2679,23 +2685,29 @@ function validarPin() {
     abrirDocente();
     vibrar(40);
   } else {
-    $('#pin-error').textContent = 'PIN incorrecto.';
+    $('#pin-error').textContent = 'Código incorrecto.';
     inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
     inp.value = '';
   }
 }
 
 function abrirDocente() {
-  if (!S.fis) {
-    modal('🎓 Panel del instructor', `
-      <p>El panel controla la fisiología de un paciente <b>en marcha</b>. Primero conecta un paciente
-      (con <b>Nuevo paciente</b> o desde <b>Casos clínicos</b>) y vuelve a abrirlo desde la pantalla del ventilador
-      manteniendo pulsado el rótulo <b>Dräger Evita 4</b>.</p>
-      <p style="margin-top:10px">Lo que sí puedes preparar ya desde aquí: el <b>modo examen</b> y el <b>PIN</b>.</p>`);
-    return;
-  }
   $('#docente').hidden = false;
-  renderDocFisio();
+  const hayPaciente = !!S.fis;
+  // Sin paciente en marcha solo tienen sentido el código y el modo examen
+  $$('.dtab').forEach(t => {
+    const necesita = t.dataset.dtab === 'fisio' || t.dataset.dtab === 'eventos' || t.dataset.dtab === 'compartir';
+    t.disabled = necesita && !hayPaciente;
+    t.style.opacity = t.disabled ? '.4' : '';
+  });
+  if (!hayPaciente) {
+    $$('.dtab').forEach(x => x.classList.remove('active'));
+    $$('.dpane').forEach(x => x.classList.remove('active'));
+    $('.dtab[data-dtab="examen"]').classList.add('active');
+    $('#dpane-examen').classList.add('active');
+    $('#doc-fisio').innerHTML = '<div class="dinfo">Conecta primero un paciente para poder manipularlo en vivo.</div>';
+    $('#doc-enlace').innerHTML = '';
+  } else renderDocFisio();
   $('#cfg-examen').checked = !!S.examen;
   $('#doc-esc-examen').checked = !!S.examen;
   $('#doc-objetivo').value = S.objetivo || '';
@@ -2984,6 +2996,9 @@ function initDocente() {
   S.deterioro = 0;
   S.docente = false;
 
+  // Acceso visible (botón) y discreto (pulsación larga), ambos con código
+  $('#btn-docente').onclick = pedirPin;
+  $('#mcard-docente').onclick = pedirPin;
   pulsacionLarga($('.hero-logo'), 1100, pedirPin);
   pulsacionLarga($('.vh-brand'), 1100, pedirPin);
 
@@ -3026,10 +3041,10 @@ function initDocente() {
 
   $('#doc-pin-guardar').onclick = () => {
     const v = ($('#doc-pin-nuevo').value || '').trim();
-    if (!/^\d{4,8}$/.test(v)) { alert('El PIN debe tener entre 4 y 8 dígitos.'); return; }
+    if (v.length < 4 || v.length > 16) { alert('El código debe tener entre 4 y 16 caracteres.'); return; }
     LS.set('pin_docente', v);
     $('#doc-pin-nuevo').value = '';
-    alert('PIN actualizado.');
+    alert('Código actualizado. A partir de ahora el panel se abre solo con el nuevo.');
   };
 
   actualizarInsignias();
