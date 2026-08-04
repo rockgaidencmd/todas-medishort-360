@@ -14,7 +14,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=5" />
+  <link rel="stylesheet" href="./style.css?v=6" />
 </head>
 <body>
 
@@ -148,7 +148,7 @@
 
   <footer class="hero-foot">
     <button class="btn btn-ghost btn-block" id="btn-instalar" hidden>⬇︎ Instalar aplicación</button>
-    <p class="fineprint">Simulación educativa. No es un dispositivo médico ni sustituye el criterio clínico profesional.<br><span id="version-app">v5</span></p>
+    <p class="fineprint">Simulación educativa. No es un dispositivo médico ni sustituye el criterio clínico profesional.<br><span id="version-app">v6</span></p>
   </footer>
 </section>
 
@@ -525,6 +525,93 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
+     ACCESO DOCENTE · PIN
+═══════════════════════════════════════════════════════════ -->
+<div id="pin-ov" class="overlay" hidden>
+  <div class="ov-card">
+    <button class="modal-x" id="pin-x" aria-label="Cerrar">✕</button>
+    <h2 class="ov-title">🎓 Acceso docente</h2>
+    <p class="ov-body" style="text-align:center;margin-bottom:16px">Introduce tu PIN para abrir el panel del instructor.</p>
+    <input type="password" id="pin-input" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" />
+    <div id="pin-error"></div>
+    <button class="btn btn-primary btn-block" id="pin-ok">Entrar</button>
+    <p class="gate-foot">El alumno no ve este panel. Si es la primera vez, el PIN es <b>2468</b> y puedes cambiarlo dentro.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANEL DOCENTE
+═══════════════════════════════════════════════════════════ -->
+<div id="docente" class="sheet" hidden>
+  <div class="sheet-card">
+    <div class="sheet-grab"></div>
+    <h3 class="sheet-title">🎓 Panel del instructor</h3>
+
+    <nav class="dtabs">
+      <button class="dtab active" data-dtab="fisio">Paciente</button>
+      <button class="dtab" data-dtab="eventos">Eventos</button>
+      <button class="dtab" data-dtab="examen">Examen</button>
+      <button class="dtab" data-dtab="compartir">Escenario</button>
+    </nav>
+
+    <!-- Fisiología en vivo -->
+    <div class="dpane active" id="dpane-fisio">
+      <p class="pane-lead">Mueve la fisiología del paciente <b>en vivo</b>. El alumno no ve estos controles: solo nota que su paciente cambia y tiene que averiguar por qué.</p>
+      <div id="doc-fisio"></div>
+
+      <div class="dgroup-h">Deterioro progresivo</div>
+      <p class="pane-lead">El paciente empeora poco a poco por sí solo, sin que toques nada.</p>
+      <div class="seg" id="seg-deterioro">
+        <button data-det="0" class="on">Estable</button>
+        <button data-det="1">Lento</button>
+        <button data-det="2">Medio</button>
+        <button data-det="3">Rápido</button>
+      </div>
+
+      <button class="btn btn-ghost btn-block" id="doc-restaurar" style="margin-top:14px">↺ Devolver al paciente a su estado inicial</button>
+    </div>
+
+    <!-- Eventos clínicos -->
+    <div class="dpane" id="dpane-eventos">
+      <p class="pane-lead">Provoca una complicación en el momento que quieras. Aparecerá como aparecería en la realidad: sin avisar.</p>
+      <div class="maniobras" id="doc-eventos"></div>
+    </div>
+
+    <!-- Modo examen -->
+    <div class="dpane" id="dpane-examen">
+      <div class="cfg-row">
+        <span class="cfg-lab">Modo examen</span>
+        <label class="switch"><input type="checkbox" id="cfg-examen"><span></span></label>
+      </div>
+      <p class="pane-lead">Con el modo examen activado, la app <b>deja de dar pistas</b>: no salen las notificaciones que explican el error ni cómo corregirlo, y la bitácora solo registra lo que hizo el alumno, no la retroalimentación.</p>
+      <p class="pane-lead">Los errores se siguen contando por dentro. Al pulsar <b>Finalizar y evaluar</b> aparece el informe completo con la puntuación. Las alarmas del ventilador siguen sonando, porque forman parte del equipo, no de la ayuda.</p>
+      <div class="dinfo">💡 El alumno ve un distintivo <b>EXAMEN</b> en la barra superior. Es intencionado: debe saber que se le está evaluando.</div>
+
+      <div class="dgroup-h">Seguridad</div>
+      <label class="field"><span>Cambiar PIN del panel</span>
+        <input type="text" id="doc-pin-nuevo" inputmode="numeric" maxlength="8" placeholder="Nuevo PIN (4–8 dígitos)" autocomplete="off" />
+      </label>
+      <button class="btn btn-ghost btn-block" id="doc-pin-guardar" style="margin-top:10px">Guardar PIN</button>
+    </div>
+
+    <!-- Escenario compartible -->
+    <div class="dpane" id="dpane-compartir">
+      <p class="pane-lead">Genera un enlace con <b>este mismo paciente</b>: mismos datos, mismos laboratorios, misma gravedad y los ajustes de partida que tengas ahora. Todos tus alumnos arrancarán exactamente igual, así los resultados son comparables.</p>
+      <label class="field"><span>Consigna para el alumno (aparece al empezar)</span>
+        <input type="text" id="doc-objetivo" placeholder="Ej.: Corrige la acidosis sin superar Pmeseta de 30" autocomplete="off" />
+      </label>
+      <label class="switch" style="margin:13px 0"><input type="checkbox" id="doc-esc-examen"><span>Arrancar en modo examen</span></label>
+      <button class="btn btn-primary btn-block" id="doc-generar">🔗 Generar enlace del escenario</button>
+      <div id="doc-enlace"></div>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="doc-cerrar" style="margin-top:16px">Cerrar panel</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
      MODAL GENÉRICO (gasometría, ayuda de parámetros, etc.)
 ═══════════════════════════════════════════════════════════ -->
 <div id="modal" class="overlay" hidden>
@@ -540,7 +627,7 @@
 <!-- Contenedor de notificaciones educativas -->
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
-<script src="./app.js?v=5"></script>
-<script type="module" src="./activacion.js?v=5"></script>
+<script src="./app.js?v=6"></script>
+<script type="module" src="./activacion.js?v=6"></script>
 </body>
 </html>

@@ -1176,7 +1176,7 @@ function evaluarReglas() {
       const res = v => (typeof v === 'function' ? v(m, f, p) : v);
       const fixv = typeof r.fix === 'function' ? r.fix(p, m, f) : r.fix;
       notificar({
-        sev: r.sev, ico: r.ico, k: colorSev(r.sev),
+        sev: r.sev, ico: r.ico, k: colorSev(r.sev), esRegla: true,
         title: r.title, msg: res(r.msg), why: r.why, fix: fixv, tema: r.tema
       }, r.id);
       if (r.sev === 'crit' || r.sev === 'warn') registrarError(r.id, r.sev, r.title, r.tema);
@@ -1451,6 +1451,10 @@ function pintarCurvas() {
 /* ─────────── Notificaciones educativas ─────────── */
 let toastSeq = 0;
 function notificar(o, id) {
+  // En modo examen el alumno no recibe ninguna pista: ni reglas, ni explicaciones
+  // de los eventos. Todo se registra por dentro y sale en el informe final.
+  // Solo pasan los mensajes marcados como "siempre" (la consigna del caso).
+  if (S.examen && !o.siempre) { añadirLog(o, id); return; }
   const cont = $('#toasts'); if (!cont) return;
   const el = document.createElement('div');
   el.className = 'toast'; el.style.setProperty('--k', o.k || colorSev(o.sev));
@@ -1479,20 +1483,28 @@ function cerrarToast(el) {
   el.classList.add('out'); setTimeout(() => el.remove(), 300);
 }
 function añadirLog(o, id) {
-  S.log.push({ t: S.t, sev: o.sev, ico: o.ico, title: o.title, msg: o.msg, why: o.why, fix: o.fix, id });
+  S.log.push({ t: S.t, sev: o.sev, ico: o.ico, title: o.title, msg: o.msg, why: o.why,
+               fix: o.fix, id, regla: !!o.esRegla, docente: !!o.docente });
   const b = $('#badge-log');
   if (b) { b.hidden = false; b.textContent = S.log.length; }
   if ($('#pane-registro')?.classList.contains('active')) pintarLog();
 }
 function pintarLog() {
   const c = $('#log-list'); if (!c) return;
-  if (!S.log.length) { c.innerHTML = '<p class="log-empty">Todavía no hay eventos. Empieza a ajustar el ventilador.</p>'; return; }
-  c.innerHTML = S.log.slice().reverse().map(l => `
+  // En modo examen se ocultan las entradas de retroalimentación y las del instructor
+  const vis = S.examen ? S.log.filter(l => !l.regla && !l.docente) : S.log;
+  if (!vis.length) {
+    c.innerHTML = '<p class="log-empty">' + (S.examen
+      ? 'Modo examen: aquí solo quedan registrados tus cambios.<br>La valoración aparece al finalizar.'
+      : 'Todavía no hay eventos. Empieza a ajustar el ventilador.') + '</p>';
+    return;
+  }
+  c.innerHTML = vis.slice().reverse().map(l => `
     <div class="log-item" style="--k:${colorSev(l.sev)}">
       <span class="log-t">${mmss(l.t)}</span>
       <div class="log-b">
         <b>${l.ico || ''} ${l.title}</b>
-        <p>${l.msg || ''}${l.fix ? `<br><span style="color:var(--ok)">✔ ${l.fix}</span>` : ''}</p>
+        <p>${l.msg || ''}${(l.fix && !S.examen) ? `<br><span style="color:var(--ok)">✔ ${l.fix}</span>` : ''}</p>
       </div>
     </div>`).join('');
 }
@@ -1656,10 +1668,15 @@ function iniciarSimulacion(preset) {
   ir('vent');
   setTimeout(() => {
     notificar({
-      sev: 'info', ico: '🫁', k: 'var(--cian)',
+      sev: 'info', ico: '🫁', k: 'var(--cian)', siempre: true,
       title: `Paciente conectado: ${DX[dx].n.split('(')[0].trim()}`,
-      msg: `Peso predicho <b>${round(pt.pbw, 1)} kg</b> → volumen protector <b>${Math.round(pt.pbw * 6)}–${Math.round(pt.pbw * 8)} mL</b>. El ventilador arranca con los ajustes de fábrica: revísalos.`,
-      why: '', fix: S.objetivo || DX[dx].meta
+      msg: S.examen
+        ? `Peso predicho <b>${round(pt.pbw, 1)} kg</b>. El ventilador arranca con los ajustes de fábrica: revísalos.`
+        : `Peso predicho <b>${round(pt.pbw, 1)} kg</b> → volumen protector <b>${Math.round(pt.pbw * 6)}–${Math.round(pt.pbw * 8)} mL</b>. El ventilador arranca con los ajustes de fábrica: revísalos.`,
+      why: '',
+      // En examen solo se muestra la consigna que escribió el instructor.
+      // El objetivo terapéutico de la patología es la respuesta: se calla.
+      fix: S.examen ? (S.objetivo || '') : (S.objetivo || DX[dx].meta)
     });
   }, 700);
   arrancarBucle();
@@ -1964,7 +1981,8 @@ function mostrarGaso() {
       <h4>🔬 ${r.nom}</h4>
       <p>${r.det.join('<br>')}</p>
     </div>
-    <p style="margin-top:12px"><b>Objetivo de este paciente:</b> ${S.objetivo || DX[S.pt.dx].meta}</p>`);
+    ${(S.examen && !S.objetivo) ? '' :
+      `<p style="margin-top:12px"><b>Objetivo de este paciente:</b> ${S.examen ? S.objetivo : (S.objetivo || DX[S.pt.dx].meta)}</p>`}`);
   añadirLog({ sev: 'info', ico: '🧪', title: 'Gasometría arterial', msg: `pH ${g.ph} · PaCO₂ ${g.paco2} · PaO₂ ${g.pao2} · HCO₃⁻ ${g.hco3} → ${r.nom}` }, 'gaso');
 }
 
@@ -2066,13 +2084,14 @@ function arrancarBucle() {
     const dtSim = dtReal * CFG.velocidad;
     S.t += dtSim;
     actualizarMedidos();
+    tickDeterioro(dtSim);
     tickFisiologia(dtSim);
     pasoCurvas(dtReal);
     pintarCurvas();
     acumUI += dtReal;
     if (acumUI > 0.28) {
       acumUI = 0;
-      pintarMedidos(); revisarAlarmasEquipo(); actualizarParamsUI();
+      pintarMedidos(); revisarAlarmasEquipo(); actualizarParamsUI(); refrescarDocFisio();
       $('#vh-clock').textContent = mmss(S.t);
     }
     acumReglas += dtSim;
@@ -2266,6 +2285,11 @@ function finalizarSesion() {
   guardarProgreso(score, crits, warns);
 
   $('#reporte-body').innerHTML = `
+    <div class="rep-alumno">
+      <label class="field"><span>Nombre del alumno (aparecerá en el informe)</span>
+        <input type="text" id="rep-alumno-nombre" placeholder="Nombre y apellidos" autocomplete="off" value="${LS.get('alumno', '')}" />
+      </label>
+    </div>
     <div class="rep-score">
       <div class="rep-ring" style="--p:${score};--k:${k}"><div><b>${score}</b><span>PUNTOS</span></div></div>
       <div class="rep-verdict" style="--k:${k}">${veredicto}</div>
@@ -2318,6 +2342,8 @@ function finalizarSesion() {
     <button class="btn btn-primary btn-block big" id="rep-otra">🔄 Nueva simulación</button>
     <div class="spacer"></div>`;
   $('#rep-otra').onclick = () => { S.corriendo = false; ir('inicio'); };
+  const na = $('#rep-alumno-nombre');
+  if (na) na.oninput = () => LS.set('alumno', na.value);
   ir('reporte');
 }
 
@@ -2474,13 +2500,7 @@ function initEventos() {
   };
 
   // Compartir informe
-  $('#btn-compartir').onclick = async () => {
-    const txt = $('#reporte-body').innerText.slice(0, 3000);
-    try {
-      if (navigator.share) await navigator.share({ title: 'Simulación Evita 4', text: txt });
-      else { await navigator.clipboard.writeText(txt); alert('Informe copiado al portapapeles.'); }
-    } catch (e) {}
-  };
+  $('#btn-compartir').onclick = compartirInforme;
 
   // Al tocar los controles, las notificaciones antiguas se apartan
   $('.ctl-body').addEventListener('pointerdown', () => {
@@ -2507,6 +2527,8 @@ document.addEventListener('DOMContentLoaded', () => {
   aplicarApariencia();
   initFormPaciente();
   initEventos();
+  initDocente();
+  const escenario = leerEscenarioDeURL();
 
   $('#btn-instalar').onclick = async () => {
     if (!promptInstalar) {
@@ -2523,11 +2545,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const chk = $('#chk-disclaimer'), btn = $('#btn-disclaimer');
   chk.onchange = () => { btn.disabled = !chk.checked; };
-  btn.onclick = () => { $('#disclaimer').hidden = true; LS.set('aviso', 1); };
+  btn.onclick = () => {
+    $('#disclaimer').hidden = true; LS.set('aviso', 1);
+    if (escenario) lanzarEscenario(escenario);
+  };
 
   // El aviso legal espera a que se haya superado la puerta de activación,
   // para no apilar dos pantallas encima de la otra en el primer arranque
-  const mostrarAviso = () => { if (!LS.get('aviso', 0)) $('#disclaimer').hidden = false; };
+  const mostrarAviso = () => {
+    if (!LS.get('aviso', 0)) $('#disclaimer').hidden = false;
+    else if (escenario) lanzarEscenario(escenario);
+  };
   // Si la puerta no llegó a mostrarse (ya activado, dentro de MS360, o
   // activacion.js no cargó) el aviso sale igualmente: nunca se salta.
   const puertaAbierta = () => { const g = $('#gate'); return !g || g.hidden; };
@@ -2560,3 +2588,449 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+/* ══════════════════════════════════════════════════════════════
+   Parte 5/5 · PANEL DOCENTE
+   Control en vivo de la fisiología, eventos, modo examen y
+   escenarios compartibles. El alumno no ve nada de esto.
+══════════════════════════════════════════════════════════════ */
+
+const PIN_DEF = '2468';
+
+/* ─────────── Fisiología manipulable por el instructor ─────────── */
+const DOC_FISIO = [
+  { id: 'crs', lab: 'Distensibilidad', u: 'mL/cmH₂O', min: 8, max: 100, step: 1, dec: 0,
+    pista: 'Bajarla endurece el pulmón: sube la presión meseta y cae el volumen en modos de presión.',
+    get: () => S.fis.crs, set: v => S.fis.crs = v },
+  { id: 'raw', lab: 'Resistencia de la vía aérea', u: 'cmH₂O/L/s', min: 3, max: 60, step: 1, dec: 0,
+    pista: 'Subirla imita secreciones o broncoespasmo: separa la presión pico de la meseta y alarga la espiración.',
+    get: () => S.fis.raw, set: v => S.fis.raw = v },
+  { id: 'shunt', lab: 'Shunt intrapulmonar', u: '%', min: 2, max: 60, step: 1, dec: 0,
+    pista: 'Subirlo hunde la oxigenación sin que la FiO₂ lo arregle: obliga al alumno a usar la PEEP.',
+    get: () => S.fis.shunt * 100, set: v => S.fis.shunt = v / 100 },
+  { id: 'vdvt', lab: 'Espacio muerto (Vd/Vt)', u: '%', min: 20, max: 80, step: 1, dec: 0,
+    pista: 'Subirlo eleva la PaCO₂ con el mismo volumen minuto y separa la EtCO₂ de la PaCO₂.',
+    get: () => S.fis.vdvt * 100, set: v => S.fis.vdvt = v / 100 },
+  { id: 'recl', lab: 'Reclutabilidad', u: '%', min: 0, max: 90, step: 5, dec: 0,
+    pista: 'Cuánto mejora la oxigenación al subir la PEEP. En 0 el pulmón no responde y solo aparece sobredistensión.',
+    get: () => S.fis.recl * 100, set: v => S.fis.recl = v / 100 },
+  { id: 'peepOpt', lab: 'PEEP útil', u: 'mbar', min: 4, max: 22, step: 1, dec: 0,
+    pista: 'Punto donde se agota el reclutamiento. Por encima, más PEEP solo sobredistiende.',
+    get: () => S.fis.peepOpt, set: v => S.fis.peepOpt = v },
+  { id: 'drive', lab: 'Impulso respiratorio', u: '%', min: 0, max: 100, step: 5, dec: 0,
+    pista: 'En 0 el paciente está apnéico. Al 100 respira con fuerza y puede luchar contra el ventilador.',
+    get: () => S.fis.sedK * 100, set: v => S.fis.sedK = clamp(v / 100, 0.02, 1) },
+  { id: 'volemia', lab: 'Sensibilidad a la PEEP', u: '%', min: 15, max: 100, step: 5, dec: 0,
+    pista: 'Cuánto le baja la tensión al subir la presión intratorácica. Alto = hipovolémico o en shock.',
+    get: () => S.fis.hemoK * 100, set: v => S.fis.hemoK = v / 100 },
+  { id: 'vco2', lab: 'Producción de CO₂', u: 'mL/min', min: 80, max: 500, step: 10, dec: 0,
+    pista: 'Subirla imita fiebre, sepsis o agitación: la PaCO₂ sube sin tocar el ventilador.',
+    get: () => S.fis.vco2, set: v => S.fis.vco2 = v },
+  { id: 'hco3', lab: 'Bicarbonato metabólico', u: 'mEq/L', min: 3, max: 45, step: 0.5, dec: 1,
+    pista: 'Bajarlo crea acidosis metabólica; subirlo, alcalosis. Cambia el objetivo de PaCO₂ del alumno.',
+    get: () => S.fis.hco3met, set: v => S.fis.hco3met = v },
+  { id: 'hb', lab: 'Hemoglobina', u: 'g/dL', min: 4, max: 18, step: 0.5, dec: 1,
+    pista: 'Bajarla reduce el transporte de oxígeno aunque la SpO₂ parezca aceptable.',
+    get: () => S.fis.hb, set: v => S.fis.hb = v },
+  { id: 'temp', lab: 'Temperatura', u: '°C', min: 33, max: 42, step: 0.1, dec: 1,
+    pista: 'Cada grado cambia el metabolismo un 10–13 % y desplaza la curva de la hemoglobina.',
+    get: () => S.pt.temp, set: v => S.pt.temp = v }
+];
+
+const DOC_EVENTOS = [
+  { id: 'pulmonPeor', n: 'Empeora el pulmón', d: 'Cae la distensibilidad, sube el shunt', ico: '📉', k: 'var(--crit)' },
+  { id: 'broncoespasmo', n: 'Broncoespasmo', d: 'Resistencia por las nubes', ico: '🌪️', k: 'var(--warn)' },
+  { id: 'secreciones', n: 'Secreciones', d: 'Sube la presión pico', ico: '🫧', k: 'var(--warn)' },
+  { id: 'neumotorax', n: 'Neumotórax', d: 'Colapso agudo e hipotensión', ico: '🚨', k: 'var(--crit)' },
+  { id: 'desconexion', n: 'Desconexión', d: 'Pone a prueba las alarmas', ico: '🔌', k: 'var(--crit)' },
+  { id: 'reconectar', n: 'Reconectar', d: 'Restablece el circuito', ico: '🔗', k: 'var(--ok)' },
+  { id: 'sangrado', n: 'Sangrado / hipovolemia', d: 'La PEEP empieza a costar cara', ico: '🩸', k: 'var(--crit)' },
+  { id: 'sepsis', n: 'Sepsis', d: 'Más CO₂, más lactato, menos tensión', ico: '🧫', k: 'var(--crit)' },
+  { id: 'fiebre', n: 'Fiebre', d: 'Sube la producción de CO₂', ico: '🌡️', k: 'var(--warn)' },
+  { id: 'despierta', n: 'Se despierta', d: 'Recupera impulso respiratorio', ico: '☀️', k: 'var(--violeta)' },
+  { id: 'apnea', n: 'Entra en apnea', d: 'Pierde el impulso respiratorio', ico: '⏸️', k: 'var(--violeta)' },
+  { id: 'mejora', n: 'El paciente mejora', d: 'Todo vuelve hacia lo normal', ico: '💚', k: 'var(--ok)' }
+];
+
+/* ─────────── Acceso ─────────── */
+function pinGuardado() { return LS.get('pin_docente', PIN_DEF); }
+
+function pulsacionLarga(el, ms, cb) {
+  if (!el) return;
+  let t = null;
+  const iniciar = () => { t = setTimeout(() => { t = null; cb(); }, ms); };
+  const cancelar = () => { if (t) { clearTimeout(t); t = null; } };
+  el.addEventListener('pointerdown', iniciar);
+  ['pointerup', 'pointerleave', 'pointercancel', 'pointermove'].forEach(e => el.addEventListener(e, cancelar));
+}
+
+function pedirPin() {
+  if (S.docente) { abrirDocente(); return; }
+  $('#pin-ov').hidden = false;
+  const inp = $('#pin-input');
+  inp.value = ''; $('#pin-error').textContent = '';
+  setTimeout(() => inp.focus(), 120);
+}
+function validarPin() {
+  const inp = $('#pin-input');
+  if (inp.value === String(pinGuardado())) {
+    S.docente = true;
+    $('#pin-ov').hidden = true;
+    abrirDocente();
+    vibrar(40);
+  } else {
+    $('#pin-error').textContent = 'PIN incorrecto.';
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    inp.value = '';
+  }
+}
+
+function abrirDocente() {
+  if (!S.fis) {
+    modal('🎓 Panel del instructor', `
+      <p>El panel controla la fisiología de un paciente <b>en marcha</b>. Primero conecta un paciente
+      (con <b>Nuevo paciente</b> o desde <b>Casos clínicos</b>) y vuelve a abrirlo desde la pantalla del ventilador
+      manteniendo pulsado el rótulo <b>Dräger Evita 4</b>.</p>
+      <p style="margin-top:10px">Lo que sí puedes preparar ya desde aquí: el <b>modo examen</b> y el <b>PIN</b>.</p>`);
+    return;
+  }
+  $('#docente').hidden = false;
+  renderDocFisio();
+  $('#cfg-examen').checked = !!S.examen;
+  $('#doc-esc-examen').checked = !!S.examen;
+  $('#doc-objetivo').value = S.objetivo || '';
+  $$('#seg-deterioro button').forEach(b => b.classList.toggle('on', +b.dataset.det === (S.deterioro || 0)));
+  actualizarInsignias();
+}
+
+/* ─────────── Controles de fisiología ─────────── */
+function renderDocFisio() {
+  $('#doc-fisio').innerHTML = DOC_FISIO.map(p => `
+    <div class="dcard" data-d="${p.id}">
+      <div class="pc-top">
+        <span class="pc-name">${p.lab}</span>
+        <span><span class="pc-val">${round(p.get(), p.dec).toFixed(p.dec)}</span><span class="pc-unit">${p.u}</span></span>
+      </div>
+      <div class="pc-ctl">
+        <button class="pc-step d-menos" aria-label="Bajar">−</button>
+        <input class="pc-range d-range" type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${clamp(p.get(), p.min, p.max)}">
+        <button class="pc-step d-mas" aria-label="Subir">+</button>
+      </div>
+      <div class="pc-foot">${p.pista}</div>
+    </div>`).join('');
+
+  $$('#doc-fisio .dcard').forEach(card => {
+    const p = DOC_FISIO.find(x => x.id === card.dataset.d);
+    const val = $('.pc-val', card), rg = $('.d-range', card);
+    const aplicar = v => {
+      v = clamp(round(v, 3), p.min, p.max);
+      p.set(v);
+      val.textContent = round(p.get(), p.dec).toFixed(p.dec);
+      rg.value = v;
+      actualizarMedidos();
+    };
+    $('.d-menos', card).onclick = () => aplicar(p.get() - p.step);
+    $('.d-mas', card).onclick = () => aplicar(p.get() + p.step);
+    rg.oninput = () => aplicar(parseFloat(rg.value));
+  });
+}
+function refrescarDocFisio() {
+  if ($('#docente').hidden) return;
+  $$('#doc-fisio .dcard').forEach(card => {
+    const p = DOC_FISIO.find(x => x.id === card.dataset.d);
+    const rg = $('.d-range', card);
+    if (document.activeElement === rg) return;
+    $('.pc-val', card).textContent = round(p.get(), p.dec).toFixed(p.dec);
+    rg.value = clamp(p.get(), p.min, p.max);
+  });
+}
+
+/* ─────────── Eventos del instructor ─────────── */
+function renderDocEventos() {
+  $('#doc-eventos').innerHTML = DOC_EVENTOS.map(e =>
+    `<button class="man-btn" data-de="${e.id}" style="--k:${e.k}"><b>${e.ico} ${e.n}</b><i>${e.d}</i></button>`
+  ).join('');
+  $$('#doc-eventos .man-btn').forEach(b => b.onclick = () => eventoDocente(b.dataset.de));
+}
+
+function eventoDocente(id) {
+  const f = S.fis; if (!f) return;
+  vibrar(30);
+  switch (id) {
+    case 'pulmonPeor':
+      f.crs = clamp(f.crs * 0.72, 8, 100);
+      f.shunt = clamp(f.shunt * 1.35, 0.02, 0.7);
+      f.vdvt = clamp(f.vdvt + 0.04, 0.2, 0.8);
+      break;
+    case 'sangrado':
+      f.hemoK = clamp(f.hemoK * 1.6, 0.2, 1.1);
+      f.coBase = clamp(f.coBase * 0.78, 1.5, 12);
+      f.mapBase = clamp(f.mapBase * 0.82, 30, 140);
+      f.hb = clamp(f.hb - 2.5, 4, 18);
+      break;
+    case 'sepsis':
+      f.vco2 *= 1.25; f.vo2 *= 1.2;
+      f.lac = clamp(f.lac + 2.5, 0.4, 20);
+      f.mapBase = clamp(f.mapBase * 0.8, 30, 140);
+      f.hemoK = clamp(f.hemoK * 1.35, 0.2, 1.1);
+      S.pt.temp = clamp(S.pt.temp + 1.2, 33, 42);
+      break;
+    case 'despierta': f.sedK = clamp(f.sedK + 0.35, 0.02, 1); f.bnm = false; break;
+    case 'apnea':     f.sedK = 0.02; break;
+    case 'mejora':
+      f.crs += (f.crs0 - f.crs) * 0.45;
+      f.raw += (f.raw0 - f.raw) * 0.5;
+      f.shunt += (f.shunt0 - f.shunt) * 0.45;
+      f.vdvt += (f.vdvt0 - f.vdvt) * 0.45;
+      f.secreciones = 0;
+      break;
+    default:
+      // El resto reutiliza los eventos clínicos ya existentes
+      if (id === 'neumotorax') provocarNeumotorax(false); else aplicarEvento(id);
+      renderDocFisio(); actualizarMedidos(); return;
+  }
+  const e = DOC_EVENTOS.find(x => x.id === id);
+  añadirLog({ sev: 'info', ico: e.ico, title: `[instructor] ${e.n}`, msg: e.d, docente: true }, 'doc_' + id);
+  renderDocFisio(); actualizarMedidos();
+}
+
+/* ─────────── Deterioro progresivo ─────────── */
+function tickDeterioro(dt) {
+  const r = S.deterioro || 0; if (!r || !S.fis) return;
+  const f = S.fis, k = r * dt * 0.00022;
+  f.crs   = clamp(f.crs * (1 - k), f.crs0 * 0.3, 120);
+  f.shunt = clamp(f.shunt * (1 + k * 1.3), 0.02, 0.7);
+  f.vdvt  = clamp(f.vdvt + k * 0.35, 0.2, 0.8);
+  f.raw   = clamp(f.raw * (1 + k * 0.5), 3, 70);
+}
+
+/* ─────────── Modo examen ─────────── */
+function actualizarInsignias() {
+  const cont = $('.vh-right'); if (!cont) return;
+  let bx = $('#badge-examen');
+  if (S.examen && !bx) {
+    bx = document.createElement('span');
+    bx.id = 'badge-examen'; bx.className = 'vh-badge examen'; bx.textContent = 'EXAMEN';
+    cont.insertBefore(bx, cont.firstChild);
+  } else if (!S.examen && bx) bx.remove();
+}
+function ponerExamen(on) {
+  S.examen = !!on;
+  LS.set('examen', S.examen ? 1 : 0);
+  actualizarInsignias();
+  const c1 = $('#cfg-examen'), c2 = $('#doc-esc-examen');
+  if (c1) c1.checked = S.examen; if (c2) c2.checked = S.examen;
+  pintarLog();
+}
+
+/* ─────────── Escenarios compartibles ─────────── */
+const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+
+function generarEscenario() {
+  if (!S.pt) return null;
+  const p = S.pt;
+  const esc = {
+    v: 1,
+    pt: { n: p.nombre, e: p.edad, s: p.sexo, t: p.talla, w: p.peso, tc: p.temp, dx: p.dx,
+          g: p.gravedad, h: p.hemo, sd: p.sedacion, b: p.bnm,
+          na: p.na, k: p.k, cl: p.cl, alb: p.alb, cr: p.cr, glu: p.glu, hb: p.hb, gaso: p.gaso },
+    // Fisiología tal y como la dejó el instructor, para que el alumno reciba
+    // exactamente el paciente que se preparó y no el de fábrica
+    fis: {
+      crs: round(S.fis.crs, 1), raw: round(S.fis.raw, 1),
+      shunt: round(S.fis.shunt, 3), vdvt: round(S.fis.vdvt, 3),
+      recl: round(S.fis.recl, 2), peepOpt: S.fis.peepOpt,
+      sedK: round(S.fis.sedK, 2), hemoK: round(S.fis.hemoK, 2),
+      vco2: round(S.fis.vco2, 0), vo2: round(S.fis.vo2, 0),
+      hco3met: round(S.fis.hco3met, 1), hb: round(S.fis.hb, 1),
+      coBase: round(S.fis.coBase, 2), mapBase: round(S.fis.mapBase, 1),
+      lac: round(S.fis.lac, 1)
+    },
+    set: S.set, modo: S.modo, af: S.autoflow ? 1 : 0, asb: S.asbOn ? 1 : 0,
+    ex: $('#doc-esc-examen')?.checked ? 1 : 0,
+    det: S.deterioro || 0,
+    obj: ($('#doc-objetivo')?.value || '').slice(0, 400)
+  };
+  return location.origin + location.pathname + '#caso=' + b64e(JSON.stringify(esc));
+}
+
+function mostrarEnlaceEscenario() {
+  const url = generarEscenario();
+  if (!url) { modal('Escenario', '<p>Conecta primero un paciente para poder compartirlo.</p>'); return; }
+  $('#doc-enlace').innerHTML = `
+    <div class="dlink">${url}</div>
+    <div class="dlink-btns">
+      <button class="btn btn-primary" id="esc-compartir">Compartir</button>
+      <button class="btn btn-ghost" id="esc-copiar">Copiar</button>
+    </div>
+    <p class="pane-lead" style="margin-top:10px">Cualquier alumno que abra este enlace arrancará con este paciente exacto. Necesitará su propio código de activación la primera vez.</p>`;
+  $('#esc-compartir').onclick = async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: 'Caso clínico · Simulador Evita 4', url });
+      else { await navigator.clipboard.writeText(url); alert('Enlace copiado.'); }
+    } catch (e) {}
+  };
+  $('#esc-copiar').onclick = async () => {
+    try { await navigator.clipboard.writeText(url); $('#esc-copiar').textContent = '✓ Copiado'; } catch (e) {}
+  };
+}
+
+function leerEscenarioDeURL() {
+  const m = location.hash.match(/caso=([A-Za-z0-9_-]+)/);
+  if (!m) return null;
+  try { return JSON.parse(b64d(m[1])); } catch (e) { return null; }
+}
+
+function lanzarEscenario(esc) {
+  if (!esc || !esc.pt) return;
+  const p = esc.pt;
+  const set = (id, v) => { const e = $('#' + id); if (e !== null && e !== undefined && v !== undefined) e.value = v; };
+  set('p-dx', p.dx); set('p-gravedad', p.g); set('p-hemo', p.h);
+  set('p-sedacion', p.sd); set('p-bnm', p.b); set('p-nombre', p.n);
+  set('p-edad', p.e); set('p-sexo', p.s); set('p-talla', p.t); set('p-peso', p.w); set('p-temp', p.tc);
+  set('g-na', p.na); set('g-k', p.k); set('g-cl', p.cl); set('g-alb', p.alb);
+  set('g-cr', p.cr); set('g-glu', p.glu); set('g-hb', p.hb);
+  if (p.gaso) {
+    set('g-ph', p.gaso.ph); set('g-paco2', p.gaso.paco2); set('g-pao2', p.gaso.pao2);
+    set('g-hco3', p.gaso.hco3); set('g-sao2', p.gaso.sao2); set('g-lac', p.gaso.lac);
+  }
+  actualizarPBW(); pintarDxInfo(); pintarAcidBase();
+
+  ponerExamen(!!esc.ex);
+  iniciarSimulacion({
+    nombre: p.n, objetivo: esc.obj || null, caso: 'compartido', dx: p.dx, gravedad: p.g,
+    hemo: p.h, sedacion: p.sd, bnm: p.b, edad: p.e, sexo: p.s, talla: p.t, peso: p.w, temp: p.tc
+  });
+  if (esc.fis) {
+    Object.assign(S.fis, esc.fis);
+    // Las bases de "restaurar paciente" pasan a ser las que fijó el instructor
+    S.fis.crs0 = S.fis.crs; S.fis.raw0 = S.fis.raw;
+    S.fis.shunt0 = S.fis.shunt; S.fis.vdvt0 = S.fis.vdvt;
+  }
+  if (esc.set) Object.assign(S.set, esc.set);
+  if (esc.modo && MODOS[esc.modo]) S.modo = esc.modo;
+  S.autoflow = !!esc.af; S.asbOn = !!esc.asb; S.deterioro = esc.det || 0;
+  renderModos(); renderParams(); actualizarMedidos();
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
+/* ─────────── Informe del alumno ─────────── */
+function textoInforme() {
+  const f = S.fis, m = S.med, p = S.pt;
+  const alumno = ($('#rep-alumno-nombre')?.value || '').trim();
+  const errs = Object.entries(S.errores);
+  const crits = errs.filter(([, e]) => e.sev === 'crit');
+  const warns = errs.filter(([, e]) => e.sev === 'warn');
+  const puntos = $('.rep-ring b')?.textContent || '—';
+  const L = [];
+  L.push('SIMULADOR DRÄGER EVITA 4 · MEDISHORT360');
+  L.push('Informe de sesión');
+  L.push('');
+  if (alumno) L.push('Alumno: ' + alumno);
+  L.push('Caso: ' + p.nombre + ' — ' + DX[p.dx].n);
+  L.push('Duración: ' + mmss(S.t) + (S.examen ? '  (modo examen)' : ''));
+  L.push('Puntuación: ' + puntos + ' / 100');
+  L.push('');
+  L.push('ESTADO FINAL DEL PACIENTE');
+  L.push(`  pH ${round(f.ph, 2)}  ·  PaCO2 ${round(f.paco2, 0)}  ·  PaO2 ${round(f.pao2, 0)}  ·  SpO2 ${round(f.spo2, 0)} %`);
+  L.push(`  Pmeseta ${round(m.pplat, 0)} mbar  ·  VT ${round(m.vtkg, 1)} mL/kg PBW  ·  PEEP total ${round(m.peepTot, 1)}`);
+  L.push(`  PAM ${round(f.map, 0)} mmHg  ·  Lactato ${round(f.lac, 1)}  ·  Complicación: ${f.neumotorax ? 'neumotórax' : 'ninguna'}`);
+  L.push('');
+  if (crits.length) {
+    L.push('ERRORES GRAVES (' + crits.length + ')');
+    crits.forEach(([, e]) => L.push('  - ' + e.title + ' (x' + e.n + ')'));
+    L.push('');
+  }
+  if (warns.length) {
+    L.push('ASPECTOS A MEJORAR (' + warns.length + ')');
+    warns.forEach(([, e]) => L.push('  - ' + e.title + ' (x' + e.n + ')'));
+    L.push('');
+  }
+  const oks = Object.entries(S.aciertos);
+  if (oks.length) {
+    L.push('ACIERTOS (' + oks.length + ')');
+    oks.forEach(([, e]) => L.push('  - ' + e.title));
+    L.push('');
+  }
+  L.push('OBJETIVO DEL CASO');
+  L.push('  ' + (S.objetivo || DX[p.dx].meta));
+  L.push('');
+  L.push('BITÁCORA');
+  S.log.forEach(l => L.push('  [' + mmss(l.t) + '] ' + (l.title || '')));
+  L.push('');
+  L.push('Simulación educativa. No es un dispositivo médico.');
+  return L.join('\n');
+}
+
+async function compartirInforme() {
+  const txt = textoInforme();
+  const alumno = ($('#rep-alumno-nombre')?.value || 'alumno').trim().replace(/[^\w\s-]/g, '') || 'alumno';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'Informe · Simulador Evita 4', text: txt }); return; }
+  } catch (e) { return; }
+  try { await navigator.clipboard.writeText(txt); } catch (e) {}
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `informe-evita4-${alumno.replace(/\s+/g, '_')}.txt`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ─────────── Conexión con el resto de la app ─────────── */
+function initDocente() {
+  S.examen = !!LS.get('examen', 0);
+  S.deterioro = 0;
+  S.docente = false;
+
+  pulsacionLarga($('.hero-logo'), 1100, pedirPin);
+  pulsacionLarga($('.vh-brand'), 1100, pedirPin);
+
+  $('#pin-ok').onclick = validarPin;
+  $('#pin-x').onclick = () => { $('#pin-ov').hidden = true; };
+  $('#pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') validarPin(); });
+  $('#pin-ov').onclick = e => { if (e.target.id === 'pin-ov') $('#pin-ov').hidden = true; };
+
+  $('#doc-cerrar').onclick = () => { $('#docente').hidden = true; };
+  $('#docente').onclick = e => { if (e.target.id === 'docente') $('#docente').hidden = true; };
+
+  $$('.dtab').forEach(t => t.onclick = () => {
+    $$('.dtab').forEach(x => x.classList.remove('active'));
+    $$('.dpane').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    $('#dpane-' + t.dataset.dtab).classList.add('active');
+    if (t.dataset.dtab === 'eventos') renderDocEventos();
+  });
+
+  $('#seg-deterioro').onclick = e => {
+    const b = e.target.closest('[data-det]'); if (!b) return;
+    S.deterioro = +b.dataset.det;
+    $$('#seg-deterioro button').forEach(x => x.classList.toggle('on', x === b));
+  };
+
+  $('#doc-restaurar').onclick = () => {
+    if (!S.fis) return;
+    const f = S.fis;
+    f.crs = f.crs0; f.raw = f.raw0; f.shunt = f.shunt0; f.vdvt = f.vdvt0;
+    f.secreciones = 0; f.neumotorax = false; f.desconectado = false;
+    f.fatiga = 0; f.o2tox = 0; f.tiempoPplatAlto = 0;
+    S.deterioro = 0;
+    $$('#seg-deterioro button').forEach(x => x.classList.toggle('on', x.dataset.det === '0'));
+    renderDocFisio(); actualizarMedidos();
+    añadirLog({ sev: 'info', ico: '↺', title: '[instructor] Paciente restaurado', msg: 'Vuelve a su estado inicial.', docente: true }, 'doc_reset');
+  };
+
+  $('#cfg-examen').onchange = e => ponerExamen(e.target.checked);
+  $('#doc-generar').onclick = mostrarEnlaceEscenario;
+
+  $('#doc-pin-guardar').onclick = () => {
+    const v = ($('#doc-pin-nuevo').value || '').trim();
+    if (!/^\d{4,8}$/.test(v)) { alert('El PIN debe tener entre 4 y 8 dígitos.'); return; }
+    LS.set('pin_docente', v);
+    $('#doc-pin-nuevo').value = '';
+    alert('PIN actualizado.');
+  };
+
+  actualizarInsignias();
+}

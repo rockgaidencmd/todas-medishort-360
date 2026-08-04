@@ -23,7 +23,7 @@
 const COLECCION = 'codigos_maestra';
 
 // Versión del build; se muestra en la pantalla de inicio
-export const VERSION_APP = '5';
+export const VERSION_APP = '6';
 window.__evita4Version = VERSION_APP;
 
 const firebaseConfig = {

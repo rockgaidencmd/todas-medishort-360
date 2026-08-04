@@ -920,3 +920,76 @@ html[data-theme="light"] .btn-primary { color: #1a1206; }
   .meas-strip { grid-template-columns: repeat(6, 1fr); }
   .wave-cv { height: 96px; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PANEL DOCENTE
+══════════════════════════════════════════════════════════════ */
+#pin-input {
+  width: 100%; box-sizing: border-box; text-align: center;
+  background: var(--s3); border: 1.5px solid var(--line); border-radius: 11px;
+  color: var(--acc); font-family: var(--mono);
+  font-size: 1.5rem; letter-spacing: 10px; padding: 14px 12px; outline: none;
+}
+#pin-input:focus { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent); }
+#pin-input.shake { animation: gateShake .4s ease; border-color: var(--crit); }
+#pin-error {
+  font-size: 12px; color: var(--crit); font-weight: 600;
+  min-height: 17px; margin: 8px 0 4px; text-align: center;
+}
+
+.dtabs { display: flex; gap: 3px; background: var(--s3); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+.dtab {
+  flex: 1; padding: 8px 4px; border-radius: 8px;
+  font-size: 11.5px; font-weight: 650; color: var(--txt-2); white-space: nowrap;
+}
+.dtab.active { background: var(--acc); color: #1a1206; }
+.dpane { display: none; }
+.dpane.active { display: block; animation: fadein .2s ease; }
+
+.dgroup-h {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--txt-3); margin: 18px 0 8px;
+}
+.dinfo {
+  font-size: 11.5px; line-height: 1.6; color: var(--txt-2);
+  background: color-mix(in srgb, var(--cian) 11%, transparent);
+  border-left: 3px solid var(--cian); border-radius: 8px;
+  padding: 10px 12px; margin-top: 12px;
+}
+.dinfo b { color: var(--txt); }
+
+.dcard {
+  background: var(--s3); border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 9px 11px 10px; margin-bottom: 7px;
+}
+.dcard .pc-top { align-items: baseline; }
+.dcard .pc-name { font-size: 12px; font-weight: 650; }
+.dcard .pc-val { font-size: 17px; }
+.dcard .pc-ctl { margin-top: 6px; }
+.dcard .pc-foot { font-size: 9.5px; }
+
+#doc-enlace { margin-top: 13px; }
+#doc-enlace:empty { display: none; }
+.dlink {
+  background: var(--s3); border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 11px 12px; font-family: var(--mono); font-size: 10.5px;
+  color: var(--acc); word-break: break-all; line-height: 1.5; margin-bottom: 9px;
+}
+.dlink-btns { display: flex; gap: 8px; }
+.dlink-btns .btn { flex: 1; padding: 11px 10px; font-size: 13px; }
+
+/* Distintivos en la barra del ventilador */
+.vh-badge {
+  font-size: 8.5px; font-weight: 800; letter-spacing: .8px;
+  padding: 3px 7px; border-radius: 6px; flex-shrink: 0;
+}
+.vh-badge.examen { background: var(--crit); color: #fff; }
+.vh-badge.docente { background: var(--violeta); color: #fff; }
+
+/* Informe: identificación del alumno */
+.rep-alumno {
+  max-width: 620px; margin: 0 auto 13px;
+  background: var(--s1); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 13px 14px;
+}
+.rep-alumno .field span { font-size: 10.5px; }
