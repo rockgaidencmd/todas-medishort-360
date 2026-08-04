@@ -5,7 +5,7 @@ ventilación mecánica en `ventilador/`.
 
 | Módulo | Versión |
 |---|---|
-| Simulador Dräger Evita 4 (`ventilador/`) | v5 |
+| Simulador Dräger Evita 4 (`ventilador/`) | v6 |
 
 El simulador muestra su número de versión abajo del todo en la pantalla de
 inicio, bajo el aviso legal. Si en un dispositivo se ve un número distinto, esa
@@ -25,6 +25,6 @@ propietaria. Si `main` tiene cambios que no se ven en
 ## Reglas de Firestore
 
 Los códigos de activación viven en Firestore, no en el repositorio. Las reglas
-que los protegen están versionadas en `firestore.rules` y hay que publicarlas
-desde la consola de Firebase. Cierran el listado completo de códigos y solo
-permiten consultar y estrenar uno concreto.
+que los protegen están versionadas en `firestore.rules` y ya están publicadas.
+Cierran el listado completo de códigos y solo permiten consultar y estrenar uno
+concreto.
