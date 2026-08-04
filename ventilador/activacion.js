@@ -12,15 +12,18 @@
 // ─────────────────────────────────────────────
 //  COLECCIÓN DE CÓDIGOS EN FIRESTORE
 //
-//  'codigos_evita4'   → códigos propios del simulador (por defecto).
-//                       Hay que crear la colección y los códigos.
-//  'codigos_maestra'  → reutiliza los códigos que ya usa la app
-//                       maestra MS360. Cambia la línea y listo.
+//  Se usa la MISMA que la app maestra MS360, de modo que un código ya
+//  repartido sirve para las dos. El identificador de dispositivo se
+//  calcula con el algoritmo idéntico al de todas-medishort-360/activacion.js,
+//  así que un móvil que ya activó MS360 pasa con su mismo código.
+//
+//  Para vender el simulador aparte, basta con crear otra colección en
+//  Firestore y poner su nombre aquí.
 // ─────────────────────────────────────────────
-const COLECCION = 'codigos_evita4';
+const COLECCION = 'codigos_maestra';
 
 // Versión del build; se muestra en la pantalla de inicio
-export const VERSION_APP = '4';
+export const VERSION_APP = '5';
 window.__evita4Version = VERSION_APP;
 
 const firebaseConfig = {
