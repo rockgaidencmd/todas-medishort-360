@@ -19,6 +19,10 @@
 // ─────────────────────────────────────────────
 const COLECCION = 'codigos_evita4';
 
+// Versión del build; se muestra en la pantalla de inicio
+export const VERSION_APP = '4';
+window.__evita4Version = VERSION_APP;
+
 const firebaseConfig = {
   apiKey:            "AIzaSyApl919VrDKdV1AdHtZsrVYUC0zym-ZrZs",
   authDomain:        "medishort360-f6f20.firebaseapp.com",
@@ -30,9 +34,26 @@ const firebaseConfig = {
 
 const LS_KEY      = 'evita4_activado';
 const LS_CODE_KEY = 'evita4_codigo';
-const LS_MAESTRA  = 'ms360maestra_activado';   // llave de la app maestra
 
 const $g = id => document.getElementById(id);
+
+/* Almacén utilizable: algunos navegadores bloquean localStorage en modo
+   privado. Si ninguno sirve devuelve null y el código se pedirá cada sesión,
+   que es preferible a dejar la puerta abierta por un fallo de almacenamiento. */
+const ST = (() => {
+  for (const s of [
+    () => window.localStorage,
+    () => window.sessionStorage
+  ]) {
+    try {
+      const st = s();
+      st.setItem('__evita4_test', '1');
+      st.removeItem('__evita4_test');
+      return st;
+    } catch (e) { /* siguiente */ }
+  }
+  return null;
+})();
 
 /* ─────────── Desbloquear la aplicación ─────────── */
 function abrirApp(inmediato) {
@@ -51,16 +72,22 @@ function abrirApp(inmediato) {
 
 /* ─────────── ¿Hace falta pedir código? ─────────── */
 function yaTieneAcceso() {
-  try {
-    // 1. Ya se activó este simulador en este dispositivo
-    if (localStorage.getItem(LS_KEY) === '1') return true;
-    // 2. El dispositivo ya activó la app maestra MS360: mismo dueño,
-    //    no tiene sentido cobrarle/preguntarle dos veces
-    if (localStorage.getItem(LS_MAESTRA) === '1') return true;
-  } catch (e) { return true; }        // sin localStorage no bloqueamos
-  // 3. Corriendo dentro del visor de MS360: la maestra ya filtró la entrada
-  try { if (window.self !== window.top) return true; } catch (e) { return true; }
+  // Ya se activó este simulador en este dispositivo
+  if (ST && ST.getItem(LS_KEY) === '1') return true;
+
+  // Corriendo dentro del visor de MS360: la app maestra ya filtró la entrada,
+  // así que no se pide un segundo código. Si la comprobación falla (iframe de
+  // otro origen) NO se concede acceso: la puerta se muestra.
+  try { if (window.self !== window.top) return true; } catch (e) { /* mostrar puerta */ }
+
   return false;
+}
+
+/* Permite volver a probar la activación: abre la app con #reset-activacion */
+function comprobarReset() {
+  if (location.hash !== '#reset-activacion') return;
+  try { ST && ST.removeItem(LS_KEY); ST && ST.removeItem(LS_CODE_KEY); } catch (e) {}
+  history.replaceState(null, '', location.pathname + location.search);
 }
 
 /* ─────────── Identificador estable del dispositivo ─────────── */
@@ -156,8 +183,7 @@ async function intentarActivar() {
 
   if (resultado.valido) {
     try {
-      localStorage.setItem(LS_KEY, '1');
-      localStorage.setItem(LS_CODE_KEY, codigo.toUpperCase());
+      if (ST) { ST.setItem(LS_KEY, '1'); ST.setItem(LS_CODE_KEY, codigo.toUpperCase()); }
     } catch (e) {}
     btn.textContent = '✅ ¡Activado!';
     setTimeout(() => abrirApp(false), 650);
@@ -178,6 +204,7 @@ async function intentarActivar() {
 
 /* ─────────── Arranque ─────────── */
 function iniciar() {
+  comprobarReset();
   if (yaTieneAcceso()) { abrirApp(true); return; }
 
   const gate = $g('gate');

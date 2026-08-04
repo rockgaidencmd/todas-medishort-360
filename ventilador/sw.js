@@ -7,15 +7,15 @@
 ══════════════════════════════════════════════════════════════ */
 
 // Sube este número en cada despliegue: fuerza a descartar la caché anterior
-const VERSION = '3';
+const VERSION = '4';
 const CACHE = 'evita4-sim-v' + VERSION;
 
 const RECURSOS = [
   './',
   './index.html',
-  './style.css?v=3',
-  './app.js?v=3',
-  './activacion.js?v=3',
+  './style.css?v=4',
+  './app.js?v=4',
+  './activacion.js?v=4',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -2541,8 +2541,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // para que las actualizaciones lleguen al primer intento y no al segundo
   if ('serviceWorker' in navigator) {
     let recargando = false;
+    // En la primera visita no hay service worker todavía: ese primer cambio de
+    // control es la instalación, no una actualización, y recargar ahí sobra
+    // (además borraría un código a medio escribir en la pantalla de activación)
+    const habiaControlador = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (recargando) return;
+      if (!habiaControlador || recargando) return;
       recargando = true;
       location.reload();
     });
