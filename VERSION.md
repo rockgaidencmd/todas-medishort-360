@@ -5,7 +5,7 @@ ventilación mecánica en `ventilador/`.
 
 | Módulo | Versión |
 |---|---|
-| Simulador Dräger Evita 4 (`ventilador/`) | v6 |
+| Simulador Dräger Evita 4 (`ventilador/`) | v7 |
 
 El simulador muestra su número de versión abajo del todo en la pantalla de
 inicio, bajo el aviso legal. Si en un dispositivo se ve un número distinto, esa
