@@ -1,0 +1,57 @@
+// ═══════════════════════════════════════════════════════════════
+//  REGLAS DE SEGURIDAD DE FIRESTORE · MEDISHORT360
+//
+//  Cópialas en:  console.firebase.google.com
+//                → proyecto medishort360-f6f20
+//                → Firestore Database → pestaña "Reglas" → Publicar
+//
+//  POR QUÉ IMPORTAN
+//  La apiKey de Firebase que aparece en activacion.js es PÚBLICA por
+//  diseño: viaja en el navegador de cada usuario y no se puede ocultar.
+//  No es una contraseña, es un identificador de proyecto. Lo que de
+//  verdad decide quién puede leer y escribir son ESTAS reglas.
+//
+//  Sin ellas (o con "allow read, write: if true") cualquiera podría
+//  descargar la lista completa de códigos de activación o liberar
+//  códigos ya usados.
+// ═══════════════════════════════════════════════════════════════
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Códigos de activación ──────────────────────────────────
+    // Los usan la app maestra MS360 y el simulador Dräger Evita 4.
+    match /codigos_maestra/{codigo} {
+
+      // Consultar UN código concreto: permitido, pero hay que saberlo.
+      allow get: if true;
+
+      // Listar la colección entera: PROHIBIDO.
+      // Esto es lo que impide que alguien se descargue todos los códigos.
+      allow list: if false;
+
+      // Estrenar un código libre: permitido una sola vez.
+      // Solo puede pasar de disponible a USADO, solo puede tocar esos
+      // tres campos, y nunca puede reasignar un código ya entregado.
+      allow update: if
+           resource.data.get('estado', 'DISPONIBLE') == 'DISPONIBLE'
+        && resource.data.get('dispositivo_id', '') == ''
+        && request.resource.data.estado == 'USADO'
+        && request.resource.data.dispositivo_id is string
+        && request.resource.data.dispositivo_id.size() > 3
+        && request.resource.data.dispositivo_id.size() < 64
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['estado', 'dispositivo_id', 'fecha_activacion']);
+
+      // Crear o borrar códigos: solo tú, desde la consola de Firebase.
+      allow create, delete: if false;
+    }
+
+    // ── Todo lo demás: cerrado ─────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
